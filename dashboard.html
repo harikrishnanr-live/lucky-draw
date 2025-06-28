@@ -1,0 +1,184 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Lucky Draw Dashboard</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet" />
+  <style>
+    .dropzone {
+      border: 2px dashed #6c757d;
+      border-radius: 10px;
+      padding: 40px;
+      text-align: center;
+      background-color: #f9f9f9;
+      cursor: pointer;
+    }
+    .dropzone.dragover {
+      background-color: #e2f5ff;
+    }
+    .fireworks {
+      position: fixed;
+      top: 0; left: 0;
+      width: 100%; height: 100%;
+      pointer-events: none;
+      z-index: 9999;
+    }
+  </style>
+</head>
+<body class="p-4 bg-light">
+
+  <div class="container">
+    <div class="d-flex justify-content-between align-items-center mb-3">
+      <h3>Welcome, <span id="userDisplay" class="text-success fw-bold"></span></h3>
+      <button id="logoutBtn" class="btn btn-outline-secondary btn-sm">Logout</button>
+    </div>
+
+    <div class="mb-4">
+      <input type="file" id="excelInput" class="form-control mb-3" accept=".xlsx" />
+      <div id="dropzone" class="dropzone">
+        Drag & Drop Excel File Here or Click to Browse
+      </div>
+    </div>
+
+    <button id="startDraw" class="btn btn-danger" disabled>🎲 Start Lucky Draw</button>
+
+    <div id="result" class="mt-4"></div>
+  </div>
+
+  <!-- Winner Modal -->
+  <div class="modal fade" id="winnerModal" tabindex="-1" aria-labelledby="winnerModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+      <div class="modal-content text-center shadow">
+        <div class="modal-header">
+          <h5 class="modal-title w-100 text-center" id="winnerModalLabel">🏆 Winner Announcement</h5>
+          <button type="button" class="btn-close position-absolute end-0 me-3" data-bs-dismiss="modal" aria-label="Close"></button>
+        </div>
+        <div class="modal-body py-4">
+          <h3 id="winnerPlace" class="mb-3"></h3>
+          <p class="fs-5 fw-semibold mb-0" id="winnerCode"></p>
+          <p class="text-muted" id="winnerName"></p>
+        </div>
+        <div class="modal-footer justify-content-center">
+          <button id="revealNext" class="btn btn-success">Reveal Next Winner</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <canvas id="fireworksCanvas" class="fireworks"></canvas>
+
+  <!-- Scripts -->
+  <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+  <script src="https://cdn.sheetjs.com/xlsx-0.20.3/package/dist/xlsx.full.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/fireworks-js@2.10.8/dist/index.umd.min.js"></script>
+
+  <script>
+    let participants = [];
+    let winners = [];
+    let index = 0;
+    const modal = new bootstrap.Modal(document.getElementById('winnerModal'));
+
+    $(document).ready(() => {
+      $("#userDisplay").text(localStorage.getItem("user") || "Guest");
+
+      $("#logoutBtn").click(() => {
+        localStorage.removeItem("user");
+        window.location.href = "index.html";
+      });
+
+      const dropzone = $("#dropzone");
+      dropzone.on("click", () => $("#excelInput").click());
+      dropzone.on("dragover", e => {
+        e.preventDefault();
+        dropzone.addClass("dragover");
+      });
+      dropzone.on("dragleave", () => dropzone.removeClass("dragover"));
+      dropzone.on("drop", e => {
+        e.preventDefault();
+        dropzone.removeClass("dragover");
+        handleFile(e.originalEvent.dataTransfer.files[0]);
+      });
+
+      $("#excelInput").change(function () {
+        handleFile(this.files[0]);
+      });
+
+      $("#startDraw").click(() => {
+        index = 0;
+        $("#revealNext").prop("disabled", false);
+        showWinner(index);
+        modal.show();
+      });
+
+      $("#revealNext").click(() => {
+        index++;
+        if (index < winners.length) {
+          showWinner(index);
+        } else {
+          $("#winnerPlace").text("🎉 All winners revealed!");
+          $("#winnerCode").text("");
+          $("#winnerName").text("");
+          $("#revealNext").prop("disabled", true);
+        }
+      });
+    });
+
+    function handleFile(file) {
+      if (!file || !file.name.endsWith(".xlsx")) {
+        $("#result").html(`<div class="alert alert-danger">❌ Only .xlsx files are supported.</div>`);
+        return;
+      }
+
+      const reader = new FileReader();
+      reader.onload = function (e) {
+        const data = new Uint8Array(e.target.result);
+        const workbook = XLSX.read(data, { type: "array" });
+        const sheet = workbook.Sheets[workbook.SheetNames[0]];
+        const rows = XLSX.utils.sheet_to_json(sheet, { header: 1 });
+
+        participants = rows.slice(1).filter(row => row[0]).map(row => ({
+          code: row[0],
+          name: row[1] || "Anonymous"
+        }));
+
+        if (participants.length < 10) {
+          $("#result").html(`<div class="alert alert-warning">⚠️ At least 10 entries required.</div>`);
+          $("#startDraw").prop("disabled", true);
+          return;
+        }
+
+        winners = [...participants].sort(() => 0.5 - Math.random()).slice(0, 10);
+        $("#result").html(`<div class="alert alert-success">✅ Ready! Click "Start Lucky Draw" to begin.</div>`);
+        $("#startDraw").prop("disabled", false);
+      };
+      reader.readAsArrayBuffer(file);
+    }
+
+    function showWinner(i) {
+      const entry = winners[i];
+      const place = 10 - i;
+      $("#winnerPlace").text(`🎉 ${place}${getOrdinal(place)} Place Winner`);
+      $("#winnerCode").text(entry.code);
+      $("#winnerName").text(entry.name);
+      startFireworks();
+    }
+
+    function getOrdinal(n) {
+      return n === 1 ? "st" : n === 2 ? "nd" : n === 3 ? "rd" : "th";
+    }
+
+    function startFireworks() {
+      const canvas = document.getElementById("fireworksCanvas");
+      const fireworks = new window.Fireworks.default(canvas, {
+        autoresize: true,
+        intensity: 30,
+        traceSpeed: 10
+      });
+      fireworks.start();
+      setTimeout(() => fireworks.stop(), 2500);
+    }
+  </script>
+</body>
+</html>

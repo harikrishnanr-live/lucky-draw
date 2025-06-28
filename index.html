@@ -1,28 +1,79 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8" />
+  <meta charset="UTF-8">
   <title>Login</title>
   <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
-  <link rel="stylesheet" href="style.css">
+  <style>
+    .error-msg {
+      color: red;
+      font-size: 0.875rem;
+      display: none;
+    }
+  </style>
 </head>
-<body class="bg-light">
-  <div class="container d-flex justify-content-center align-items-center vh-100">
-    <div class="card p-4 shadow" style="width: 100%; max-width: 400px;">
-      <h3 class="mb-3 text-center">Lucky Draw Login</h3>
-      <input type="text" id="username" class="form-control mb-3" placeholder="Enter your name">
-      <button class="btn btn-primary w-100" onclick="login()">Enter</button>
-    </div>hii
+<body class="bg-light d-flex align-items-center vh-100">
+  <div class="container">
+    <div class="row justify-content-center">
+      <div class="col-md-4">
+        <div class="card shadow p-4">
+          <h4 class="text-center mb-3">Lucky Draw Login</h4>
+
+          <div class="mb-3">
+            <label for="username" class="form-label">Username</label>
+            <input type="text" id="username" class="form-control" placeholder="Enter username">
+            <div id="usernameError" class="error-msg">Username required</div>
+          </div>
+
+          <div class="mb-3">
+            <label for="password" class="form-label">Password</label>
+            <input type="password" id="password" class="form-control" placeholder="Enter password">
+            <div id="passwordError" class="error-msg">Password required</div>
+          </div>
+
+          <div id="loginError" class="error-msg mb-3">Invalid credentials</div>
+          <button class="btn btn-primary w-100" onclick="login()">Login</button>
+        </div>
+      </div>
+    </div>
   </div>
 
   <script>
+    const usernameInput = document.getElementById("username");
+    const passwordInput = document.getElementById("password");
+    const usernameError = document.getElementById("usernameError");
+    const passwordError = document.getElementById("passwordError");
+    const loginError = document.getElementById("loginError");
+
+    function clearErrors() {
+      usernameError.style.display = "none";
+      passwordError.style.display = "none";
+      loginError.style.display = "none";
+    }
+
+    usernameInput.addEventListener("input", clearErrors);
+    passwordInput.addEventListener("input", clearErrors);
+
     function login() {
-      const user = document.getElementById("username").value;
-      if (user.trim()) {
+      const user = usernameInput.value.trim();
+      const pass = passwordInput.value.trim();
+
+      clearErrors();
+
+      if (!user) {
+        usernameError.style.display = "block";
+        return;
+      }
+      if (!pass) {
+        passwordError.style.display = "block";
+        return;
+      }
+
+      if (user === "admin" && pass === "admin") {
         localStorage.setItem("user", user);
         window.location.href = "dashboard.html";
       } else {
-        alert("Please enter a valid name");
+        loginError.style.display = "block";
       }
     }
   </script>
