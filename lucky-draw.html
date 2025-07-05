@@ -23,7 +23,6 @@
   <div class="container mx-auto flex justify-between items-center px-4">
     <a href="dashboard.html" class="text-lg font-bold">🎁 Lucky Draw</a>
     <div class="space-x-4 hidden md:flex">
-      <a href="dashboard.html" class="hover:text-gray-200">Dashboard</a>
       <a href="upload-prize.html" class="hover:text-gray-200">Upload Prize</a>
       <a href="upload-participants.html" class="hover:text-gray-200">Upload Participants</a>
       <a href="lucky-draw.html" class="font-semibold text-white">Do Lucky Draw</a>
@@ -63,12 +62,11 @@
 
 <!-- 📜 Scripts -->
 <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
-<script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
 <script>
   let participants = JSON.parse(localStorage.getItem("participants") || "[]");
   let prizeList = JSON.parse(localStorage.getItem("prizeList") || "[]");
   let drawResult = JSON.parse(localStorage.getItem("drawResult") || "[]");
-  let drawIndex = 0;
+  let drawIndex = drawResult.length;
 
   $(document).ready(() => {
     if (!participants.length || !prizeList.length) {
@@ -87,29 +85,53 @@
       }
 
       const prize = prizeList[drawIndex];
-      const existing = drawResult.find(p => p.prize === prize.prize);
-
-      if (existing) {
-        showTable(existing.winners, prize.prize);
-      } else {
-        const alreadyWon = drawResult.flatMap(p => p.winners.map(w => w.code));
-        const eligible = participants.filter(code => !alreadyWon.includes(code));
-        const shuffled = fisherYatesShuffle([...eligible]);
-        const winners = shuffled.slice(0, prize.qty).map(code => ({ code }));
-        drawResult.push({ prize: prize.prize, winners });
-        localStorage.setItem("drawResult", JSON.stringify(drawResult));
-        showTable(winners, prize.prize);
-        renderPrizeButtons();
-      }
-
+      drawPrize(prize.prize);
       drawIndex++;
+      renderPrizeButtons();
     });
 
     $("#navLogout").click(() => {
-      localStorage.removeItem("user");
+      localStorage.clear();
+      sessionStorage.clear();
       window.location.href = "index.html";
     });
   });
+
+  function renderPrizeButtons() {
+    $("#prizeButtons").html("");
+    prizeList.forEach(prize => {
+      $("#prizeButtons").append(
+        `<button class="bg-white text-indigo-700 border border-indigo-500 rounded px-3 py-1 hover:bg-indigo-100 text-sm" onclick="viewWinners('${prize.prize}')">${prize.prize}</button>`
+      );
+    });
+  }
+
+  window.viewWinners = function(prizeName) {
+    const group = drawResult.find(p => p.prize === prizeName);
+    if (group) {
+      showTable(group.winners, prizeName);
+    } else {
+      drawPrize(prizeName);
+      renderPrizeButtons();
+    }
+  };
+
+  function drawPrize(prizeName) {
+    const prize = prizeList.find(p => p.prize === prizeName);
+    if (!prize) {
+      $("#drawStatus").html(`<div class="text-red-600">❌ Prize "${prizeName}" not found.</div>`);
+      return;
+    }
+
+    const alreadyWon = drawResult.flatMap(p => p.winners.map(w => w.code));
+    const eligible = participants.filter(code => !alreadyWon.includes(code));
+    const shuffled = fisherYatesShuffle([...eligible]);
+    const winners = shuffled.slice(0, prize.qty).map(code => ({ code }));
+
+    drawResult.push({ prize: prizeName, winners });
+    localStorage.setItem("drawResult", JSON.stringify(drawResult));
+    showTable(winners, prizeName);
+  }
 
   function showTable(winners, prizeName) {
     const table = $("#winnerTable");
@@ -120,20 +142,6 @@
     launchCelebration();
   }
 
-  function renderPrizeButtons() {
-    $("#prizeButtons").html("");
-    drawResult.forEach(group => {
-      $("#prizeButtons").append(
-        `<button class="bg-white text-indigo-700 border border-indigo-500 rounded px-3 py-1 hover:bg-indigo-100 text-sm" onclick="viewWinners('${group.prize}')">${group.prize}</button>`
-      );
-    });
-  }
-
-  window.viewWinners = function(prizeName) {
-    const group = drawResult.find(p => p.prize === prizeName);
-    if (group) showTable(group.winners, prizeName);
-  };
-
   function fisherYatesShuffle(array) {
     for (let i = array.length - 1; i > 0; i--) {
       const j = Math.floor(Math.random() * (i + 1));
@@ -142,82 +150,82 @@
     return array;
   }
 
-  // 🔥 Truly Unique Fireworks Effects
   function launchCelebration() {
-    const effects = [meteorShower, ringExplosion, sparkleSpray, crownBurst, cometTrail, pulseWave];
+    const effects = [
+      meteorShower,
+      ringExplosion,
+      sparkleSpray,
+      crownBurst,
+      cometTrail,
+      pulseWave,
+      centerBlast,
+      rainbowWave,
+      fireTwister,
+      screenRain
+    ];
     const pick = effects[Math.floor(Math.random() * effects.length)];
     pick();
   }
 
   function meteorShower() {
-    confetti({
-      particleCount: 150,
-      angle: 90,
-      spread: 120,
-      gravity: 1.2,
-      startVelocity: 20,
-      origin: { y: 0 },
-      colors: ['#FFD700', '#FF4500', '#FFA500']
-    });
+    confetti({ particleCount: 150, angle: 90, spread: 120, gravity: 1.2, startVelocity: 20, origin: { y: 0 }, colors: ['#FFD700', '#FF4500', '#FFA500'] });
   }
 
   function ringExplosion() {
     for (let a = 0; a < 360; a += 30) {
-      confetti({
-        particleCount: 10,
-        angle: a,
-        spread: 10,
-        origin: { x: 0.5, y: 0.5 },
-        colors: ['#8A2BE2', '#4B0082']
-      });
+      confetti({ particleCount: 10, angle: a, spread: 10, origin: { x: 0.5, y: 0.5 }, colors: ['#8A2BE2', '#4B0082'] });
     }
   }
 
   function sparkleSpray() {
-    confetti({
-      particleCount: 120,
-      spread: 90,
-      scalar: 0.7,
-      ticks: 50,
-      origin: { x: Math.random(), y: Math.random() },
-      colors: ['#00FFFF', '#FF69B4']
-    });
+    confetti({ particleCount: 120, spread: 90, scalar: 0.7, ticks: 50, origin: { x: Math.random(), y: Math.random() }, colors: ['#00FFFF', '#FF69B4'] });
   }
 
   function crownBurst() {
-    confetti({
-      particleCount: 80,
-      angle: 270,
-      spread: 45,
-      startVelocity: 50,
-      origin: { x: 0.5, y: 1 },
-      colors: ['#FFD700', '#FFFAF0']
-    });
+    confetti({ particleCount: 80, angle: 270, spread: 45, startVelocity: 50, origin: { x: 0.5, y: 1 }, colors: ['#FFD700', '#FFFAF0'] });
   }
 
   function cometTrail() {
     const side = Math.random() < 0.5 ? 0 : 1;
-    confetti({
-      particleCount: 100,
-      angle: side ? 315 : 225,
-      spread: 60,
-      ticks: 150,
-      origin: { x: side, y: 0.5 },
-      colors: ['#00FF7F', '#7CFC00']
-    });
+    confetti({ particleCount: 100, angle: side ? 315 : 225, spread: 60, ticks: 150, origin: { x: side, y: 0.5 }, colors: ['#00FF7F', '#7CFC00'] });
   }
 
   function pulseWave() {
     for (let i = 0; i < 5; i++) {
       setTimeout(() => {
-        confetti({
-          particleCount: 50,
-          spread: 100,
-          startVelocity: 30,
-          origin: { x: 0.5, y: 0.5 },
-          colors: ['#ff0', '#f0f', '#0ff']
-        });
+        confetti({ particleCount: 50, spread: 100, startVelocity: 30, origin: { x: 0.5, y: 0.5 }, colors: ['#ff0', '#f0f', '#0ff'] });
       }, i * 300);
     }
   }
+
+  function centerBlast() {
+    confetti({ particleCount: 100, spread: 70, origin: { x: 0.5, y: 0.5 }, colors: ['#FF0000', '#00FF00', '#0000FF'] });
+  }
+
+  function rainbowWave() {
+    const colors = ['#FF0000', '#FF7F00', '#FFFF00', '#00FF00', '#0000FF', '#4B0082', '#8B00FF'];
+    for (let i = 0; i < colors.length; i++) {
+      setTimeout(() => {
+        confetti({ particleCount: 25, spread: 90, origin: { x: Math.random(), y: Math.random() }, colors: [colors[i]] });
+      }, i * 200);
+    }
+  }
+
+  function fireTwister() {
+    let angle = 90;
+    for (let i = 0; i < 6; i++) {
+      setTimeout(() => {
+        confetti({ particleCount: 40, angle: angle, spread: 40, origin: { x: 0.5, y: 0 }, colors: ['#FF4500', '#FFD700'] });
+        angle += 45;
+      }, i * 200);
+    }
+  }
+
+  function screenRain() {
+    for (let i = 0; i < 10; i++) {
+      confetti({ particleCount: 10, angle: 90, spread: 20, origin: { x: Math.random(), y: 0 }, colors: ['#00BFFF', '#1E90FF'] });
+    }
+  }
 </script>
+</body>
+</html>

@@ -13,7 +13,6 @@
   <div class="container mx-auto flex justify-between items-center px-4">
     <a href="dashboard.html" class="text-lg font-bold">🎁 Lucky Draw</a>
     <div class="space-x-4 hidden md:flex">
-      <a href="dashboard.html" class="hover:text-gray-200">Dashboard</a>
       <a href="upload-prize.html" class="font-semibold text-white">Upload Prize</a>
       <a href="upload-participants.html" class="hover:text-gray-200">Upload Participants</a>
       <a href="lucky-draw.html" class="hover:text-gray-200">Do Lucky Draw</a>
@@ -80,9 +79,11 @@
     });
 
     logoutBtn.addEventListener("click", () => {
-      localStorage.removeItem("user");
+      localStorage.clear();
+      sessionStorage.clear();
       window.location.href = "index.html";
     });
+
   });
 
   function handleFile(file) {
