@@ -5,8 +5,16 @@
   <title>Upload Participants</title>
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <script src="https://cdn.tailwindcss.com"></script>
+  <style>
+    body {
+      background-image: url('background.jpg');
+      background-size: cover;
+      background-position: center;
+      background-repeat: no-repeat;
+    }
+  </style>
 </head>
-<body class="bg-gray-50 min-h-screen">
+<body class="bg-gray-900 bg-opacity-90 min-h-screen flex flex-col">
 
 <!-- 🔗 Navbar -->
 <nav class="bg-gradient-to-r from-purple-700 to-indigo-700 text-white py-4 shadow">
@@ -24,10 +32,10 @@
 
 <!-- 📥 Upload Section -->
 <div class="container mx-auto mt-10 px-4 max-w-2xl">
-  <h2 class="text-xl font-semibold text-gray-800 mb-4">👥 Upload Participant List (.xlsx: Code)</h2>
+  <h2 class="text-xl font-semibold text-white mb-4">👥 Upload Participant List (.xlsx: Code)</h2>
 
   <!-- Dropzone -->
-  <div id="dropzone" class="mb-6 rounded-lg border-2 border-dashed border-indigo-400 bg-white p-10 text-center text-gray-600 transition-all duration-300 ease-in-out hover:shadow-md hover:bg-indigo-50 cursor-pointer">
+  <div id="dropzone" class="mb-6 rounded-lg border-2 border-dashed border-indigo-400 bg-white bg-opacity-90 p-10 text-center text-gray-700 transition-all duration-300 ease-in-out hover:shadow-md hover:bg-indigo-50 cursor-pointer">
     <p class="text-lg mb-2">📂 Drag & Drop Excel File Here</p>
     <p class="text-sm text-gray-500">or click to select file</p>
     <input type="file" id="excelInput" class="hidden" accept=".xlsx" />
@@ -37,14 +45,14 @@
   <div id="result" class="mb-4 text-sm"></div>
 
   <!-- Scrollable Table -->
-  <div class="max-h-96 overflow-y-auto border border-gray-300 rounded shadow-md">
+  <div class="max-h-96 overflow-y-auto border border-gray-300 rounded shadow-md bg-white bg-opacity-80">
     <table id="participantTable" class="min-w-full table-auto hidden">
       <thead class="bg-indigo-600 text-white sticky top-0">
         <tr>
           <th class="px-4 py-2 text-left">Code</th>
         </tr>
       </thead>
-      <tbody class="bg-white text-gray-700"></tbody>
+      <tbody class="text-gray-800"></tbody>
     </table>
   </div>
 </div>

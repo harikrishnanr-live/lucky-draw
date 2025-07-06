@@ -33,28 +33,36 @@
     }
   </style>
 </head>
-<body class="bg-gray-50 min-h-screen">
+<body class="bg-cover bg-center min-h-screen relative" style="background-image: url('background.jpg');">
 
-<!-- 🔗 Navbar -->
-<nav class="bg-gradient-to-r from-purple-700 to-indigo-700 text-white py-4 shadow">
-  <div class="max-w-7xl mx-auto flex justify-between items-center px-4">
-    <a href="dashboard.html" class="text-lg font-bold">🎁 Lucky Draw</a>
-    <div class="space-x-4 hidden md:flex">
-      <a href="upload-prize.html" class="hover:text-gray-200">Upload Prize</a>
-      <a href="upload-participants.html" class="hover:text-gray-200">Upload Participants</a>
-      <a href="lucky-draw.html" class="hover:text-gray-200">Do Lucky Draw</a>
-      <a href="winners.html" class="font-semibold text-white">View Winners</a>
-      <button id="navLogout" class="px-3 py-1 bg-white text-indigo-700 rounded hover:bg-indigo-100 text-sm">Logout</button>
+<!-- 🌑 Overlay -->
+<div class="absolute inset-0 bg-black bg-opacity-50 z-0"></div>
+
+<!-- 🧱 Main Content Wrapper -->
+<div class="relative z-10">
+
+  <!-- 🔗 Navbar -->
+  <nav class="bg-gradient-to-r from-purple-700 to-indigo-700 text-white py-4 shadow">
+    <div class="max-w-7xl mx-auto flex justify-between items-center px-4">
+      <a href="dashboard.html" class="text-lg font-bold">🎁 Lucky Draw</a>
+      <div class="space-x-4 hidden md:flex">
+        <a href="upload-prize.html" class="hover:text-gray-200">Upload Prize</a>
+        <a href="upload-participants.html" class="hover:text-gray-200">Upload Participants</a>
+        <a href="lucky-draw.html" class="hover:text-gray-200">Do Lucky Draw</a>
+        <a href="winners.html" class="font-semibold text-white">View Winners</a>
+        <button id="navLogout" class="px-3 py-1 bg-white text-indigo-700 rounded hover:bg-indigo-100 text-sm">Logout</button>
+      </div>
     </div>
-  </div>
-</nav>
+  </nav>
 
-<!-- 🏆 Winners Display -->
-<div class="max-w-5xl mx-auto mt-10 px-4">
-  <h2 class="text-xl font-semibold text-gray-800 mb-4 fade-in">📋 Prize-Wise Winners</h2>
-  <button id="downloadExcel" class="bg-green-600 text-white px-4 py-2 rounded mb-6 hover:bg-green-700 hover:scale-105 transition-transform duration-300 ease-in-out">Download Excel</button>
-  <div id="winnerGroups"></div>
-</div>
+  <!-- 🏆 Winners Display -->
+  <div class="max-w-5xl mx-auto mt-10 px-4 text-white">
+    <h2 class="text-xl font-semibold mb-4 fade-in">📋 Prize-Wise Winners</h2>
+    <button id="downloadExcel" class="bg-green-600 text-white px-4 py-2 rounded mb-6 hover:bg-green-700 hover:scale-105 transition-transform duration-300 ease-in-out">Download Excel</button>
+    <div id="winnerGroups"></div>
+  </div>
+
+</div> <!-- End of main wrapper -->
 
 <!-- 📜 Scripts -->
 <script>
@@ -69,7 +77,7 @@
     const drawResult = JSON.parse(localStorage.getItem("drawResult") || "[]");
 
     if (!participants.length || !drawResult.length) {
-      $("#winnerGroups").html(`<div class="text-yellow-600">⚠️ No winner data found.</div>`);
+      $("#winnerGroups").html(`<div class="text-yellow-300">⚠️ No winner data found.</div>`);
       $("#downloadExcel").prop("disabled", true);
       return;
     }
@@ -86,13 +94,13 @@
 
     // 🏆 Prize Winners
     drawResult.forEach(group => {
-      html += `<h3 class="mt-6 text-lg font-medium text-gray-700 fade-in">🏆 ${group.prize}</h3>`;
-      html += `<div class="table-appear max-h-64 overflow-auto border border-gray-300 rounded shadow mb-4">
+      html += `<h3 class="mt-6 text-lg font-medium text-white fade-in">🏆 ${group.prize}</h3>`;
+      html += `<div class="table-appear max-h-64 overflow-auto border border-gray-300 rounded shadow mb-4 bg-white text-gray-800 bg-opacity-90">
         <table class="min-w-full table-auto text-left">
           <thead class="bg-indigo-600 text-white sticky top-0">
             <tr><th class="px-4 py-2">Code</th></tr>
           </thead>
-          <tbody class="bg-white">`;
+          <tbody>`;
       group.winners.forEach(w => {
         html += `<tr class="border-b"><td class="px-4 py-2">${w.code}</td></tr>`;
       });
@@ -100,13 +108,13 @@
     });
 
     // 😔 Non-Winners
-    html += `<h3 class="mt-8 text-lg font-medium text-gray-700 fade-in">😔 Participants Who Didn't Win</h3>`;
-    html += `<div class="table-appear max-h-64 overflow-auto border border-gray-300 rounded shadow mb-10">
+    html += `<h3 class="mt-8 text-lg font-medium text-white fade-in">😔 Participants Who Didn't Win</h3>`;
+    html += `<div class="table-appear max-h-64 overflow-auto border border-gray-300 rounded shadow mb-10 bg-white text-gray-800 bg-opacity-90">
       <table class="min-w-full table-auto text-left">
         <thead class="bg-gray-300 text-gray-900 sticky top-0">
           <tr><th class="px-4 py-2">Code</th></tr>
         </thead>
-        <tbody class="bg-white">`;
+        <tbody>`;
     nonWinners.forEach(code => {
       html += `<tr class="border-b"><td class="px-4 py-2">${code}</td></tr>`;
     });

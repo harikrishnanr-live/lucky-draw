@@ -2,31 +2,72 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8">
-  <title>Login</title>
+  <title>Melpadom Chundan Lucky Draw 2025 Login</title>
   <script src="https://cdn.tailwindcss.com"></script>
+  <style>
+    body {
+      background-image: url('bg3.jpg');
+      background-size: cover;
+      background-position: center;
+    }
+  </style>
 </head>
-<body class="bg-gray-100 flex items-center justify-center min-h-screen">
-  <div class="w-full max-w-sm">
-    <div class="bg-white shadow-md rounded-lg p-6">
-      <h4 class="text-center text-xl font-semibold mb-4">Lucky Draw Login</h4>
+<body class="flex items-center justify-center min-h-screen bg-gray-900 bg-opacity-90">
 
+  <div class="w-full max-w-sm">
+    <div class="bg-white bg-opacity-90 shadow-lg rounded-lg p-6">
+      <h4 class="text-center text-xl font-semibold mb-4 text-blue-900">
+        Melpadom Chundan Lucky Draw 2025 Login
+      </h4>
+
+      <!-- Username -->
       <div class="mb-4">
         <label for="username" class="block text-sm font-medium text-gray-700">Username</label>
-        <input type="text" id="username" class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500" placeholder="Enter username">
+        <input
+          type="text"
+          id="username"
+          placeholder="Enter username"
+          class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+        />
         <div id="usernameError" class="text-red-600 text-sm mt-1 hidden">Username required</div>
       </div>
 
-      <div class="mb-4">
+      <!-- Password -->
+      <div class="mb-4 relative">
         <label for="password" class="block text-sm font-medium text-gray-700">Password</label>
-        <input type="password" id="password" class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500" placeholder="Enter password">
+        <input
+          type="password"
+          id="password"
+          placeholder="Enter password"
+          class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+        />
+        <button
+          type="button"
+          onclick="togglePassword()"
+          class="absolute right-3 top-9 text-gray-500 hover:text-blue-600"
+        >
+          <span class="material-icons">visibility</span>
+        </button>
         <div id="passwordError" class="text-red-600 text-sm mt-1 hidden">Password required</div>
       </div>
 
+      <!-- Error Message -->
       <div id="loginError" class="text-red-600 text-sm mb-3 hidden">Invalid credentials</div>
-      <button onclick="login()" class="w-full bg-blue-600 text-white py-2 rounded-md hover:bg-blue-700">Login</button>
+
+      <!-- Login Button -->
+      <button
+        onclick="login()"
+        class="w-full bg-blue-600 text-white py-2 rounded-md hover:bg-blue-700"
+      >
+        Login
+      </button>
     </div>
   </div>
 
+  <!-- Icons for password toggle -->
+  <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet" />
+
+  <!-- Script -->
   <script>
     const usernameInput = document.getElementById("username");
     const passwordInput = document.getElementById("password");
@@ -63,6 +104,11 @@
       } else {
         loginError.classList.remove("hidden");
       }
+    }
+
+    function togglePassword() {
+      const type = passwordInput.getAttribute("type") === "password" ? "text" : "password";
+      passwordInput.setAttribute("type", type);
     }
   </script>
 </body>
