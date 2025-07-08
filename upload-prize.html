@@ -12,6 +12,19 @@
       background-position: center;
       background-repeat: no-repeat;
     }
+    .spinner {
+      border: 4px solid rgba(0, 0, 0, 0.1);
+      border-left-color: #4f46e5;
+      border-radius: 50%;
+      width: 24px;
+      height: 24px;
+      animation: spin 1s linear infinite;
+      display: inline-block;
+      vertical-align: middle;
+    }
+    @keyframes spin {
+      to { transform: rotate(360deg); }
+    }
   </style>
 </head>
 <body class="bg-gray-900 bg-opacity-90 min-h-screen">
@@ -40,7 +53,7 @@
     <input type="file" id="excelInput" class="hidden" accept=".xlsx" />
   </div>
 
-  <div id="result" class="mb-4 text-sm"></div>
+  <div id="result" class="mb-4 text-sm text-white"></div>
 
   <div class="max-h-96 overflow-y-auto border border-gray-300 rounded shadow-md bg-white bg-opacity-80">
     <table id="prizeTable" class="hidden min-w-full table-auto">
@@ -58,8 +71,6 @@
 <!-- 📜 Scripts -->
 <script src="https://cdn.sheetjs.com/xlsx-0.20.3/package/dist/xlsx.full.min.js"></script>
 <script>
-  const participants = Array.from({ length: 100 }, (_, i) => `User${i + 1}`);
-
   document.addEventListener("DOMContentLoaded", () => {
     const dropzone = document.getElementById("dropzone");
     const fileInput = document.getElementById("excelInput");
@@ -91,6 +102,13 @@
       sessionStorage.clear();
       window.location.href = "index.html";
     });
+
+    // Load existing prize list on page load
+    const stored = JSON.parse(localStorage.getItem("prizeList") || "[]");
+    if (stored.length) {
+      renderPrizeTable(stored);
+      document.getElementById("result").innerHTML = `<div class="text-green-400">✅ Loaded ${stored.length} prizes from storage.</div>`;
+    }
   });
 
   function handleFile(file) {
@@ -99,10 +117,11 @@
     const tbody = table.querySelector("tbody");
 
     if (!file || !file.name.endsWith(".xlsx")) {
-      result.innerHTML = `<div class="text-red-600">❌ Please upload a valid .xlsx file.</div>`;
+      result.innerHTML = `<div class="text-red-500">❌ Please upload a valid .xlsx file.</div>`;
       return;
     }
 
+    result.innerHTML = `<div class="text-indigo-300"><span class="spinner"></span> Processing file...</div>`;
     localStorage.removeItem("prizeList");
 
     const reader = new FileReader();
@@ -122,33 +141,34 @@
           }));
 
         if (prizeData.length === 0) {
-          result.innerHTML = `<div class="text-yellow-600">⚠️ No valid prize entries found. Please check your file.</div>`;
+          result.innerHTML = `<div class="text-yellow-400">⚠️ No valid prize entries found. Please check your file.</div>`;
           return;
         }
 
-        let pool = [...participants];
-        prizeData.forEach(p => {
-          p.winners = pool.splice(0, p.qty);
-        });
-
         localStorage.setItem("prizeList", JSON.stringify(prizeData));
-
-        tbody.innerHTML = prizeData.map(p => `
-          <tr class="border-b">
-            <td class="px-4 py-2">${p.prize}</td>
-            <td class="px-4 py-2">${p.qty}</td>
-          </tr>
-        `).join("");
-
-        table.classList.remove("hidden");
-        result.innerHTML = `<div class="text-green-600">✅ Prize list uploaded and stored successfully!</div>`;
+        renderPrizeTable(prizeData);
+        result.innerHTML = `<div class="text-green-400">✅ Prize list uploaded and stored successfully!</div>`;
       } catch (error) {
         console.error("Parsing error:", error);
-        result.innerHTML = `<div class="text-red-600">❌ Failed to parse file. Check format and try again.</div>`;
+        result.innerHTML = `<div class="text-red-500">❌ Failed to parse file. Check format and try again.</div>`;
       }
     };
 
     reader.readAsArrayBuffer(file);
+  }
+
+  function renderPrizeTable(prizes) {
+    const table = document.getElementById("prizeTable");
+    const tbody = table.querySelector("tbody");
+
+    tbody.innerHTML = prizes.map(p => `
+      <tr class="border-b">
+        <td class="px-4 py-2">${p.prize}</td>
+        <td class="px-4 py-2">${p.qty}</td>
+      </tr>
+    `).join("");
+
+    table.classList.remove("hidden");
   }
 </script>
 </body>
