@@ -1,238 +1,752 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8" />
-  <title>Lucky Draw</title>
-  <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <script src="https://cdn.tailwindcss.com"></script>
-  <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
-  <style>
-    #winnerTable {
-      opacity: 0;
-      transition: opacity 0.8s ease-in-out;
-    }
-    #winnerTable.visible {
-      opacity: 1;
-    }
-  </style>
-</head>
-<body class="bg-cover bg-center min-h-screen relative" style="background-image: url('background.jpg');">
-
-  <!-- Overlay -->
-  <div class="absolute inset-0 bg-black bg-opacity-40 z-0"></div>
-
-  <!-- Content Wrapper -->
-  <div class="relative z-10">
-
-    <!-- 🔗 Navbar -->
-    <nav class="bg-gradient-to-r from-purple-700 to-indigo-700 text-white py-4 shadow">
-      <div class="container mx-auto flex justify-between items-center px-4">
-        <a href="dashboard.html" class="text-lg font-bold">Melpadom Chundan Lucky Draw 2025 🎁</a>
-        <div class="space-x-4 hidden md:flex">
-          <a href="upload-prize.html" class="hover:text-gray-200">Upload Prize Details</a>
-          <a href="upload-participants.html" class="hover:text-gray-200">Upload Participant Details</a>
-          <a href="lucky-draw.html" class="font-semibold text-white">Let's Do Lucky Draw</a>
-          <a href="winners.html" class="hover:text-gray-200">View Winners</a>
-          <button id="navLogout" class="px-3 py-1 bg-white text-indigo-700 rounded hover:bg-indigo-100 text-sm">Logout</button>
-        </div>
-      </div>
-    </nav>
-
-    <!-- 🎯 Draw Controls -->
-    <div class="container mx-auto text-center mt-8 px-4">
-      <h2 class="text-2xl font-semibold text-white mb-3">🎲 Lucky Draw</h2>
-      <button id="nextPrize" class="bg-red-600 text-white px-4 py-2 rounded hover:bg-red-700">Next Prize Draw</button>
-      <div id="drawStatus" class="mt-4 text-sm text-white"></div>
-    </div>
-
-    <!-- 📋 Winner Table -->
-    <div class="container mx-auto mt-8 px-4">
-      <div class="max-h-96 overflow-y-auto border border-gray-300 rounded shadow-md bg-white bg-opacity-90">
-        <table id="winnerTable" class="min-w-full table-auto hidden">
-          <thead class="bg-indigo-600 text-white sticky top-0">
-            <tr>
-              <th class="px-4 py-2 text-left">Code</th>
-              <th class="px-4 py-2 text-left">Prize</th>
-            </tr>
-          </thead>
-          <tbody class="text-gray-700"></tbody>
-        </table>
-      </div>
-    </div>
-
-    <!-- 🎛 Prize Buttons -->
-    <div class="container mx-auto text-center mt-8 px-4">
-      <h3 class="text-lg font-medium text-white">🎁 View Individual Prize Winners</h3>
-      <div id="prizeButtons" class="flex flex-wrap justify-center gap-2 mt-4"></div>
-    </div>
-  </div>
-
-  <!-- 📜 Scripts -->
-  <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
-  <script>
-    let participants = JSON.parse(localStorage.getItem("participants") || "[]");
-    let prizeList = JSON.parse(localStorage.getItem("prizeList") || "[]");
-    let drawResult = JSON.parse(localStorage.getItem("drawResult") || "[]");
-    let drawIndex = drawResult.length;
-
-    $(document).ready(() => {
-      if (!participants.length || !prizeList.length) {
-        $("#drawStatus").html(`<div class="text-yellow-300 animate-pulse">⚠️ Missing participants or prizes.</div>`);
-        $("#nextPrize").prop("disabled", true);
-        return;
-      }
-
-      renderPrizeButtons();
-
-      $("#nextPrize").click(() => {
-        if (drawIndex >= prizeList.length) {
-          $("#drawStatus").html(`<div class="text-green-300 animate-pulse">✅ All prizes drawn!</div>`);
-          $("#nextPrize").prop("disabled", true);
-          return;
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Prize Drawing System</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
+    <style>
+        .modal-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.8);
+            display: none;
+            justify-content: center;
+            align-items: center;
+            z-index: 1000;
         }
 
-        const prize = prizeList[drawIndex];
-        drawPrize(prize.prize);
-        drawIndex++;
-        renderPrizeButtons();
-      });
+        .modal-content {
+            background: white;
+            border-radius: 20px;
+            padding: 40px;
+            max-width: 600px;
+            width: 90%;
+            max-height: 80vh;
+            overflow-y: auto;
+            box-shadow: 0 25px 50px rgba(0, 0, 0, 0.5);
+        }
 
-      $("#navLogout").click(() => {
-        localStorage.clear();
-        sessionStorage.clear();
-        window.location.href = "index.html";
-      });
-    });
+        .spinner-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.95);
+            display: none;
+            justify-content: center;
+            align-items: center;
+            z-index: 1001;
+        }
 
-    function renderPrizeButtons() {
-      $("#prizeButtons").html("");
-      prizeList.forEach(prize => {
-        $("#prizeButtons").append(
-          `<button class="bg-white text-indigo-700 border border-indigo-500 rounded px-3 py-1 hover:bg-indigo-100 text-sm" onclick="viewWinners('${prize.prize}')">${prize.prize}</button>`
-        );
-      });
-    }
+        .spinner-container {
+            width: 350px;
+            height: 350px;
+            position: relative;
+            border-radius: 50%;
+            background: linear-gradient(45deg, #ff6b6b, #4ecdc4, #45b7d1, #f39c12, #e74c3c, #9b59b6);
+            padding: 12px;
+            animation: spin 1.5s linear infinite;
+            box-shadow: 0 0 40px rgba(255, 107, 107, 0.5);
+        }
 
-    window.viewWinners = function(prizeName) {
-      const group = drawResult.find(p => p.prize === prizeName);
-      if (group) {
-        showTable(group.winners, prizeName);
-      } else {
-        drawPrize(prizeName);
-        renderPrizeButtons();
-      }
-    };
+        .spinner-inner {
+            width: 100%;
+            height: 100%;
+            background: white;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            position: relative;
+            overflow: hidden;
+        }
 
-    function drawPrize(prizeName) {
-      const prize = prizeList.find(p => p.prize === prizeName);
-      if (!prize) {
-        $("#drawStatus").html(`<div class="text-red-300">❌ Prize "${prizeName}" not found.</div>`);
-        return;
-      }
+        .spinner-codes {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 18px;
+            font-weight: bold;
+            color: #333;
+            text-align: center;
+            padding: 30px;
+            box-sizing: border-box;
+            line-height: 1.3;
+        }
 
-      const alreadyWon = drawResult.flatMap(p => p.winners.map(w => w.code));
-      const eligible = participants.filter(code => !alreadyWon.includes(code));
-      const shuffled = fisherYatesShuffle([...eligible]);
-      const winners = shuffled.slice(0, prize.qty).map(code => ({ code }));
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
 
-      drawResult.push({ prize: prizeName, winners });
-      localStorage.setItem("drawResult", JSON.stringify(drawResult));
-      showTable(winners, prizeName);
-    }
+        .prize-button {
+            transition: all 0.3s ease;
+            min-width: 200px;
+            min-height: 120px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            border: none;
+            border-radius: 16px;
+            color: white;
+            font-weight: 600;
+            text-shadow: 0 2px 4px rgba(0,0,0,0.2);
+            box-shadow: 0 8px 20px rgba(0,0,0,0.15);
+            transform: translateY(0);
+        }
 
-    function showTable(winners, prizeName) {
-      const table = $("#winnerTable");
-      const tbody = table.find("tbody");
-      tbody.html(winners.map(w => `<tr><td class="px-4 py-2">${w.code}</td><td class="px-4 py-2">${prizeName}</td></tr>`).join(""));
-      table.removeClass("hidden").addClass("visible");
-      $("#drawStatus").html(`<div class="text-green-300">✅ Winners for "${prizeName}" drawn.</div>`);
-      launchCelebration();
-    }
+        .prize-button:hover:not(:disabled) {
+            transform: translateY(-8px);
+            box-shadow: 0 15px 30px rgba(0,0,0,0.25);
+        }
 
-    function fisherYatesShuffle(array) {
-      for (let i = array.length - 1; i > 0; i--) {
-        const j = Math.floor(Math.random() * (i + 1));
-        [array[i], array[j]] = [array[j], array[i]];
-      }
-      return array;
-    }
+        .prize-button:disabled {
+            opacity: 0.7;
+            cursor: not-allowed;
+            transform: translateY(0);
+        }
 
-    function launchCelebration() {
-      const effects = [
-        meteorShower,
-        ringExplosion,
-        sparkleSpray,
-        crownBurst,
-        cometTrail,
-        pulseWave,
-        centerBlast,
-        rainbowWave,
-        fireTwister,
-        screenRain
-      ];
-      const pick = effects[Math.floor(Math.random() * effects.length)];
-      pick();
-    }
+        .prize-button.completed {
+            background: linear-gradient(135deg, #10b981, #059669);
+            position: relative;
+            overflow: hidden;
+        }
 
-    function meteorShower() {
-      confetti({ particleCount: 150, angle: 90, spread: 120, gravity: 1.2, startVelocity: 20, origin: { y: 0 }, colors: ['#FFD700', '#FF4500', '#FFA500'] });
-    }
+        .prize-button.completed::before {
+            content: '✓';
+            position: absolute;
+            top: 10px;
+            right: 15px;
+            font-size: 24px;
+            color: rgba(255,255,255,0.9);
+        }
 
-    function ringExplosion() {
-      for (let a = 0; a < 360; a += 30) {
-        confetti({ particleCount: 10, angle: a, spread: 10, origin: { x: 0.5, y: 0.5 }, colors: ['#8A2BE2', '#4B0082'] });
-      }
-    }
+        .winner-card {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border-radius: 16px;
+            padding: 20px;
+            margin: 12px 0;
+            box-shadow: 0 8px 25px rgba(0, 0, 0, 0.15);
+            transform: translateY(20px);
+            opacity: 0;
+            animation: slideIn 0.6s ease forwards;
+            position: relative;
+            overflow: hidden;
+        }
 
-    function sparkleSpray() {
-      confetti({ particleCount: 120, spread: 90, scalar: 0.7, ticks: 50, origin: { x: Math.random(), y: Math.random() }, colors: ['#00FFFF', '#FF69B4'] });
-    }
+        .winner-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255,255,255,0.2), transparent);
+            transition: left 0.5s;
+        }
 
-    function crownBurst() {
-      confetti({ particleCount: 80, angle: 270, spread: 45, startVelocity: 50, origin: { x: 0.5, y: 1 }, colors: ['#FFD700', '#FFFAF0'] });
-    }
+        .winner-card:hover::before {
+            left: 100%;
+        }
 
-    function cometTrail() {
-      const side = Math.random() < 0.5 ? 0 : 1;
-      confetti({ particleCount: 100, angle: side ? 315 : 225, spread: 60, ticks: 150, origin: { x: side, y: 0.5 }, colors: ['#00FF7F', '#7CFC00'] });
-    }
+        .winner-card:nth-child(odd) {
+            background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+        }
 
-    function pulseWave() {
-      for (let i = 0; i < 5; i++) {
-        setTimeout(() => {
-          confetti({ particleCount: 50, spread: 100, startVelocity: 30, origin: { x: 0.5, y: 0.5 }, colors: ['#ff0', '#f0f', '#0ff'] });
-        }, i * 300);
-      }
-    }
+        .winner-card:nth-child(even) {
+            background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
+        }
 
-    function centerBlast() {
-      confetti({ particleCount: 100, spread: 70, origin: { x: 0.5, y: 0.5 }, colors: ['#FF0000', '#00FF00', '#0000FF'] });
-    }
+        @keyframes slideIn {
+            to {
+                transform: translateY(0);
+                opacity: 1;
+            }
+        }
 
-    function rainbowWave() {
-      const colors = ['#FF0000', '#FF7F00', '#FFFF00', '#00FF00', '#0000FF', '#4B0082', '#8B00FF'];
-      for (let i = 0; i < colors.length; i++) {
-        setTimeout(() => {
-          confetti({ particleCount: 25, spread: 90, origin: { x: Math.random(), y: Math.random() }, colors: [colors[i]] });
-        }, i * 200);
-      }
-    }
+        .action-btn {
+            background: linear-gradient(45deg, #667eea, #764ba2);
+            transition: all 0.3s ease;
+            border: none;
+            border-radius: 12px;
+            padding: 12px 24px;
+            color: white;
+            font-weight: 600;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.2);
+        }
 
-    function fireTwister() {
-      let angle = 90;
-      for (let i = 0; i < 6; i++) {
-        setTimeout(() => {
-          confetti({ particleCount: 40, angle: angle, spread: 40, origin: { x: 0.5, y: 0 }, colors: ['#FF4500', '#FFD700'] });
-          angle += 45;
-        }, i * 200);
-      }
-    }
+        .action-btn:hover:not(:disabled) {
+            transform: translateY(-3px);
+            box-shadow: 0 8px 25px rgba(0, 0, 0, 0.3);
+        }
 
-    function screenRain() {
-      for (let i = 0; i < 10; i++) {
-        confetti({ particleCount: 10, angle: 90, spread: 20, origin: { x: Math.random(), y: 0 }, colors: ['#00BFFF', '#1E90FF'] });
-      }
-    }
-  </script>
+        .action-btn:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        .close-btn {
+            background: linear-gradient(45deg, #ef4444, #dc2626);
+        }
+
+        .reset-btn {
+            background: linear-gradient(45deg, #f59e0b, #d97706);
+        }
+
+        .mobile-menu {
+            display: none;
+        }
+
+        .mobile-menu.active {
+            display: block;
+        }
+
+        @media (max-width: 768px) {
+            .desktop-menu {
+                display: none;
+            }
+            
+            .prize-button {
+                min-height: 100px;
+                font-size: 14px;
+            }
+            
+            .modal-content {
+                padding: 24px;
+            }
+        }
+
+        .stats-card {
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            border-radius: 16px;
+            padding: 24px;
+            color: white;
+            margin-bottom: 24px;
+        }
+
+        .progress-bar {
+            background: rgba(255, 255, 255, 0.2);
+            border-radius: 10px;
+            height: 8px;
+            overflow: hidden;
+            margin-top: 12px;
+        }
+
+        .progress-fill {
+            background: linear-gradient(90deg, #10b981, #059669);
+            height: 100%;
+            border-radius: 10px;
+            transition: width 0.3s ease;
+        }
+    </style>
+</head>
+<body class="bg-gradient-to-br from-purple-900 via-blue-900 to-indigo-900 min-h-screen">
+    <!-- Navigation Menu -->
+    <nav class="bg-gradient-to-r from-purple-800 to-indigo-800 text-white py-4 shadow-xl">
+        <div class="max-w-7xl mx-auto flex justify-between items-center px-4">
+            <a href="dashboard.html" class="text-xl font-bold flex items-center space-x-2">
+                <span>🎁</span>
+                <span>Lucky Draw System</span>
+            </a>
+            
+            <!-- Desktop Menu -->
+            <div class="desktop-menu space-x-6 hidden md:flex">
+                <a href="upload-prize.html" class="hover:text-gray-200 transition-colors duration-200 flex items-center space-x-1">
+                    <span>📋</span>
+                    <span>Upload Prize</span>
+                </a>
+                <a href="upload-participants.html" class="hover:text-gray-200 transition-colors duration-200 flex items-center space-x-1">
+                    <span>👥</span>
+                    <span>Upload Participants</span>
+                </a>
+                <a href="lucky-draw.html" class="font-semibold text-white bg-white bg-opacity-20 px-4 py-2 rounded-lg flex items-center space-x-1">
+                    <span>🎲</span>
+                    <span>Lucky Draw</span>
+                </a>
+                <a href="winners.html" class="hover:text-gray-200 transition-colors duration-200 flex items-center space-x-1">
+                    <span>🏆</span>
+                    <span>Winners</span>
+                </a>
+                <button id="navLogout" class="px-4 py-2 bg-white text-indigo-700 rounded-lg hover:bg-indigo-100 text-sm transition-colors duration-200 font-semibold">
+                    Logout
+                </button>
+            </div>
+
+            <!-- Mobile Menu Button -->
+            <button id="mobileMenuBtn" class="md:hidden focus:outline-none">
+                <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"></path>
+                </svg>
+            </button>
+        </div>
+
+        <!-- Mobile Menu -->
+        <div id="mobileMenu" class="mobile-menu md:hidden bg-purple-900 bg-opacity-90 px-4 pb-4">
+            <div class="flex flex-col space-y-3 mt-4">
+                <a href="upload-prize.html" class="hover:text-gray-200 py-2 transition-colors duration-200">📋 Upload Prize</a>
+                <a href="upload-participants.html" class="hover:text-gray-200 py-2 transition-colors duration-200">👥 Upload Participants</a>
+                <a href="lucky-draw.html" class="font-semibold text-white bg-white bg-opacity-20 px-3 py-2 rounded-lg">🎲 Lucky Draw</a>
+                <a href="winners.html" class="hover:text-gray-200 py-2 transition-colors duration-200">🏆 Winners</a>
+                <button id="mobileLogout" class="px-3 py-2 bg-white text-indigo-700 rounded-lg hover:bg-indigo-100 text-sm transition-colors duration-200 text-left font-semibold">
+                    Logout
+                </button>
+            </div>
+        </div>
+    </nav>
+
+    <div class="container mx-auto px-4 py-8">
+        <!-- Header -->
+        <div class="text-center mb-12">
+            <h1 class="text-5xl font-bold text-white mb-4">🎁 Prize Drawing System</h1>
+            <p class="text-xl text-gray-300">Select a prize to start the lucky draw</p>
+        </div>
+
+        <!-- Statistics Card -->
+        <div class="max-w-4xl mx-auto mb-8">
+            <div class="stats-card">
+                <div class="flex justify-between items-center mb-4">
+                    <h3 class="text-xl font-semibold">Draw Progress</h3>
+                    <span id="progressText" class="text-sm opacity-80">0/0 prizes completed</span>
+                </div>
+                <div class="progress-bar">
+                    <div id="progressFill" class="progress-fill" style="width: 0%"></div>
+                </div>
+                <div class="flex justify-between mt-4 text-sm opacity-80">
+                    <span id="participantsCount">0 participants</span>
+                    <span id="winnersCount">0 winners selected</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- Prize Grid -->
+        <div class="grid gap-6 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 mb-12" id="prizeGrid">
+            <!-- Prize buttons will be generated here -->
+        </div>
+
+        <!-- Control Panel -->
+        <div class="text-center">
+            <div id="drawStatus" class="text-white text-lg mb-6"></div>
+            <button id="resetBtn" class="reset-btn action-btn font-semibold">
+                🔄 Reset All Draws
+            </button>
+        </div>
+    </div>
+
+    <!-- Spinner Modal -->
+    <div id="spinnerModal" class="spinner-overlay">
+        <div class="text-center">
+            <div class="spinner-container">
+                <div class="spinner-inner">
+                    <div class="spinner-codes" id="spinningCodes">
+                        Preparing draw...
+                    </div>
+                </div>
+            </div>
+            <div class="text-white text-2xl mt-6 font-bold" id="spinnerPrize">Prize Name</div>
+            <div class="text-gray-300 mt-2 text-lg">🎲 Drawing winners...</div>
+        </div>
+    </div>
+
+    <!-- Winner Modal -->
+    <div id="winnerModal" class="modal-overlay">
+        <div class="modal-content">
+            <div class="text-center mb-8">
+                <h2 class="text-3xl font-bold text-gray-800 mb-2" id="modalTitle">🏆 Winners</h2>
+                <div class="text-gray-600 text-lg" id="winnerCount">Set 1 of 2</div>
+            </div>
+            
+            <div id="winnersContainer" class="space-y-3 mb-8 max-h-80 overflow-y-auto">
+                <!-- Winner cards will be populated here -->
+            </div>
+            
+            <div class="flex justify-center space-x-4">
+                <button id="nextBtn" class="action-btn font-semibold" style="display: none;">
+                    ➡️ Next Set
+                </button>
+                <button id="closeModal" class="close-btn action-btn font-semibold" style="display: none;">
+                    ✅ Close
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Load data from localStorage
+        let prizeList = JSON.parse(localStorage.getItem('prizeList')) || [];
+        let participants = JSON.parse(localStorage.getItem('participants')) || [];
+        let allWinners = JSON.parse(localStorage.getItem('allWinners')) || [];
+
+        // State management
+        let currentPrizeIndex = -1;
+        let currentPrizeWinners = [];
+        let currentSetIndex = 0;
+        let totalSets = 0;
+
+        // Initialize the application
+        function init() {
+            if (prizeList.length === 0 || participants.length === 0) {
+                showEmptyState();
+                return;
+            }
+            
+            renderPrizeButtons();
+            updateDrawStatus();
+            updateStatistics();
+            setupEventListeners();
+            setupNavigation();
+        }
+
+        // Show empty state when no data
+        function showEmptyState() {
+            const grid = document.getElementById('prizeGrid');
+            grid.innerHTML = `
+                <div class="col-span-full text-center py-16">
+                    <div class="text-6xl mb-4">📋</div>
+                    <h3 class="text-2xl font-semibold text-white mb-4">No Data Found</h3>
+                    <p class="text-gray-300 mb-8">Please upload prize list and participants first</p>
+                    <div class="space-x-4">
+                        <a href="upload-prize.html" class="action-btn inline-block">📋 Upload Prizes</a>
+                        <a href="upload-participants.html" class="action-btn inline-block">👥 Upload Participants</a>
+                    </div>
+                </div>
+            `;
+        }
+
+        // Setup navigation event listeners
+        function setupNavigation() {
+            const mobileMenuBtn = document.getElementById('mobileMenuBtn');
+            const mobileMenu = document.getElementById('mobileMenu');
+            
+            mobileMenuBtn.addEventListener('click', () => {
+                mobileMenu.classList.toggle('active');
+            });
+
+            // Logout functionality
+            document.getElementById('navLogout').addEventListener('click', logout);
+            document.getElementById('mobileLogout').addEventListener('click', logout);
+
+            function logout() {
+                if (confirm('Are you sure you want to logout? This will clear all data.')) {
+                    localStorage.clear();
+                    sessionStorage.clear();
+                    window.location.href = 'index.html';
+                }
+            }
+
+            // Close mobile menu when clicking outside
+            document.addEventListener('click', (e) => {
+                if (!mobileMenuBtn.contains(e.target) && !mobileMenu.contains(e.target)) {
+                    mobileMenu.classList.remove('active');
+                }
+            });
+        }
+
+        // Update statistics display
+        function updateStatistics() {
+            const completed = prizeList.filter(p => p.winners && p.winners.length === p.qty).length;
+            const total = prizeList.length;
+            const totalWinners = allWinners.length;
+            
+            document.getElementById('progressText').textContent = `${completed}/${total} prizes completed`;
+            document.getElementById('progressFill').style.width = `${(completed / total) * 100}%`;
+            document.getElementById('participantsCount').textContent = `${participants.length} participants`;
+            document.getElementById('winnersCount').textContent = `${totalWinners} winners selected`;
+        }
+
+        // Render prize buttons
+        function renderPrizeButtons() {
+            const grid = document.getElementById('prizeGrid');
+            grid.innerHTML = '';
+
+            prizeList.forEach((prize, index) => {
+                if (!prize.winners) prize.winners = [];
+                
+                const isCompleted = prize.winners.length === prize.qty;
+                const buttonClass = isCompleted ? 'prize-button completed' : 'prize-button';
+
+                const button = document.createElement('button');
+                button.className = buttonClass;
+                button.innerHTML = `
+                    <div class="text-xl font-bold mb-2">${prize.prize}</div>
+                    <div class="text-sm opacity-90 mb-2">Quantity: ${prize.qty}</div>
+                    ${isCompleted ? 
+                        '<div class="text-sm font-semibold">✅ Completed</div>' : 
+                        prize.winners.length > 0 ? 
+                            `<div class="text-sm">Progress: ${prize.winners.length}/${prize.qty}</div>` :
+                            '<div class="text-sm">🎲 Ready to draw</div>'
+                    }
+                `;
+                button.onclick = () => startPrizeDraw(index);
+                button.disabled = isCompleted;
+                
+                grid.appendChild(button);
+            });
+        }
+
+        // Update draw status
+        function updateDrawStatus() {
+            const completed = prizeList.filter(p => p.winners && p.winners.length === p.qty).length;
+            const total = prizeList.length;
+            const status = document.getElementById('drawStatus');
+            
+            if (completed === total) {
+                status.innerHTML = `<div class="text-green-400 text-2xl">🎉 All prizes have been drawn! (${completed}/${total})</div>`;
+            } else {
+                status.innerHTML = `<div class="text-blue-400 text-lg">Progress: ${completed}/${total} prizes completed</div>`;
+            }
+        }
+
+        // Start prize drawing process
+        function startPrizeDraw(prizeIndex) {
+            currentPrizeIndex = prizeIndex;
+            const prize = prizeList[prizeIndex];
+            
+            if (!prize.winners) prize.winners = [];
+            
+            if (prize.winners.length === prize.qty) {
+                alert('🎉 This prize has already been fully drawn!');
+                return;
+            }
+
+            // Calculate remaining winners needed
+            const remainingWinners = prize.qty - prize.winners.length;
+            
+            // For prizes > 5, divide into sets of 5
+            if (remainingWinners > 5) {
+                const winnersToDrawThisSet = Math.min(5, remainingWinners);
+                drawWinners(prize, winnersToDrawThisSet);
+            } else {
+                drawWinners(prize, remainingWinners);
+            }
+        }
+
+        // Draw winners for a prize
+        function drawWinners(prize, count) {
+            // Show spinner
+            showSpinner(prize);
+            
+            // Get eligible participants (exclude all previous winners)
+            const eligible = participants.filter(p => !allWinners.includes(p));
+            
+            if (eligible.length < count) {
+                alert(`❌ Not enough eligible participants! Need ${count}, but only ${eligible.length} available.`);
+                hideSpinner();
+                return;
+            }
+
+            // Simulate spinner animation for 3 seconds
+            const spinnerInterval = setInterval(() => {
+                const randomCodes = getRandomCodes(eligible, Math.min(eligible.length, 8));
+                document.getElementById('spinningCodes').innerHTML = randomCodes.join('<br>');
+            }, 150);
+
+            // Stop spinner after 3 seconds and show results
+            setTimeout(() => {
+                clearInterval(spinnerInterval);
+                
+                // Draw actual winners
+                const winners = drawRandomWinners(eligible, count);
+                
+                // Add winners to the prize
+                prize.winners.push(...winners);
+                
+                // Add winners to global winners list
+                allWinners.push(...winners);
+                
+                // Save to localStorage
+                localStorage.setItem('prizeList', JSON.stringify(prizeList));
+                localStorage.setItem('allWinners', JSON.stringify(allWinners));
+                
+                // Store current draw results
+                currentPrizeWinners = winners;
+                
+                // Calculate sets
+                const remainingAfterDraw = prize.qty - prize.winners.length;
+                totalSets = Math.ceil(prize.qty / 5);
+                currentSetIndex = Math.ceil(prize.winners.length / 5) - 1;
+                
+                // Hide spinner and show results
+                hideSpinner();
+                showWinnerModal(prize, winners, remainingAfterDraw > 0);
+                
+                // Update UI
+                renderPrizeButtons();
+                updateDrawStatus();
+                updateStatistics();
+                
+                // Launch celebration
+                launchCelebration();
+            }, 3000);
+        }
+
+        // Show spinner
+        function showSpinner(prize) {
+            document.getElementById('spinnerPrize').textContent = prize.prize;
+            document.getElementById('spinnerModal').style.display = 'flex';
+        }
+
+        // Hide spinner
+        function hideSpinner() {
+            document.getElementById('spinnerModal').style.display = 'none';
+        }
+
+        // Show winner modal
+        function showWinnerModal(prize, winners, hasMoreSets) {
+            document.getElementById('modalTitle').textContent = `🏆 ${prize.prize} Winners`;
+            
+            // Update set counter
+            const setNumber = currentSetIndex + 1;
+            document.getElementById('winnerCount').textContent = `Set ${setNumber} of ${totalSets}`;
+            
+            // Display winners
+            displayWinners(winners);
+            
+            // Show/hide buttons based on whether there are more sets
+            const nextBtn = document.getElementById('nextBtn');
+            const closeBtn = document.getElementById('closeModal');
+            
+            if (hasMoreSets) {
+                nextBtn.style.display = 'inline-block';
+                nextBtn.disabled = false;
+                closeBtn.style.display = 'none';
+            } else {
+                nextBtn.style.display = 'none';
+                closeBtn.style.display = 'inline-block';
+            }
+            
+            // Show modal
+            document.getElementById('winnerModal').style.display = 'flex';
+        }
+
+        // Display winners in the modal
+        function displayWinners(winners) {
+            const container = document.getElementById('winnersContainer');
+            container.innerHTML = '';
+            
+            winners.forEach((winner, index) => {
+                const card = document.createElement('div');
+                card.className = 'winner-card';
+                card.style.animationDelay = `${index * 0.1}s`;
+                card.innerHTML = `
+                    <div class="flex justify-between items-center">
+                        <div class="font-bold text-xl">${winner}</div>
+                        <div class="text-sm opacity-90 bg-white bg-opacity-20 px-3 py-1 rounded-full">
+                            #${index + 1}
+                        </div>
+                    </div>
+                `;
+                container.appendChild(card);
+            });
+        }
+
+        // Setup event listeners
+        function setupEventListeners() {
+            // Next button
+            document.getElementById('nextBtn').addEventListener('click', () => {
+                document.getElementById('nextBtn').disabled = true;
+                document.getElementById('winnerModal').style.display = 'none';
+                
+                // Continue drawing for the same prize
+                setTimeout(() => {
+                    startPrizeDraw(currentPrizeIndex);
+                }, 500);
+            });
+
+            // Close button
+            document.getElementById('closeModal').addEventListener('click', () => {
+                document.getElementById('winnerModal').style.display = 'none';
+            });
+
+            // Reset button
+            document.getElementById('resetBtn').addEventListener('click', () => {
+                if (confirm('⚠️ Are you sure you want to reset all draws? This will clear all winners and cannot be undone.')) {
+                    resetAllDraws();
+                }
+            });
+        }
+
+        // Reset all draws
+        function resetAllDraws() {
+            prizeList.forEach(prize => {
+                prize.winners = [];
+            });
+            allWinners = [];
+            localStorage.setItem('prizeList', JSON.stringify(prizeList));
+            localStorage.setItem('allWinners', JSON.stringify(allWinners));
+            renderPrizeButtons();
+            updateDrawStatus();
+            updateStatistics();
+            
+            // Show reset confirmation
+            const status = document.getElementById('drawStatus');
+            status.innerHTML = '<div class="text-yellow-400 text-lg">🔄 All draws have been reset successfully!</div>';
+            setTimeout(() => {
+                updateDrawStatus();
+            }, 3000);
+        }
+
+        // Get random codes for spinner display
+        function getRandomCodes(eligible, count) {
+            const shuffled = [...eligible].sort(() => 0.5 - Math.random());
+            return shuffled.slice(0, count);
+        }
+
+        // Draw random winners using Fisher-Yates shuffle
+        function drawRandomWinners(eligible, count) {
+            const shuffled = [...eligible];
+            for (let i = shuffled.length - 1; i > 0; i--) {
+                const j = Math.floor(Math.random() * (i + 1));
+                [shuffled[i], shuffled[j]] = [shuffled[j], shuffled[i]];
+            }
+            return shuffled.slice(0, count);
+        }
+
+        // Launch celebration animation
+        function launchCelebration() {
+            // Multiple confetti bursts
+            const celebrate = () => {
+                confetti({
+                    particleCount: 100,
+                    spread: 70,
+                    origin: { y: 0.6 },
+                    colors: ['#667eea', '#764ba2', '#f093fb', '#f5576c', '#4facfe', '#00f2fe']
+                });
+            };
+            
+            celebrate();
+            setTimeout(celebrate, 300);
+            setTimeout(celebrate, 600);
+            
+            // Side cannons
+            setTimeout(() => {
+                confetti({
+                    particleCount: 50,
+                    angle: 60,
+                    spread: 55,
+                    origin: { x: 0 }
+                });
+                confetti({
+                    particleCount: 50,
+                    angle: 120,
+                    spread: 55,
+                    origin: { x: 1 }
+                });
+            }, 200);
+        }
+
+        // Initialize the application when DOM is loaded
+        document.addEventListener('DOMContentLoaded', init);
+    </script>
 </body>
 </html>
