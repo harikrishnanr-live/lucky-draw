@@ -382,371 +382,419 @@
     </div>
 
     <script>
-        // Load data from localStorage
-        let prizeList = JSON.parse(localStorage.getItem('prizeList')) || [];
-        let participants = JSON.parse(localStorage.getItem('participants')) || [];
-        let allWinners = JSON.parse(localStorage.getItem('allWinners')) || [];
+       // Load data from localStorage
+let prizeList = JSON.parse(localStorage.getItem('prizeList')) || [];
+let participants = JSON.parse(localStorage.getItem('participants')) || [];
+let allWinners = JSON.parse(localStorage.getItem('allWinners')) || [];
 
-        // State management
-        let currentPrizeIndex = -1;
-        let currentPrizeWinners = [];
-        let currentSetIndex = 0;
-        let totalSets = 0;
+// State management
+let currentPrizeIndex = -1;
+let currentPrizeWinners = [];
+let currentSetIndex = 0;
+let totalSets = 0;
 
-        // Initialize the application
-        function init() {
-            if (prizeList.length === 0 || participants.length === 0) {
-                showEmptyState();
-                return;
-            }
-            
-            renderPrizeButtons();
-            updateDrawStatus();
-            updateStatistics();
-            setupEventListeners();
-            setupNavigation();
+// Initialize the application
+function init() {
+    if (prizeList.length === 0 || participants.length === 0) {
+        showEmptyState();
+        return;
+    }
+    
+    renderPrizeButtons();
+    updateDrawStatus();
+    updateStatistics();
+    setupEventListeners();
+    setupNavigation();
+}
+
+// Show empty state when no data
+function showEmptyState() {
+    const grid = document.getElementById('prizeGrid');
+    grid.innerHTML = `
+        <div class="col-span-full text-center py-16">
+            <div class="text-6xl mb-4">📋</div>
+            <h3 class="text-2xl font-semibold text-white mb-4">No Data Found</h3>
+            <p class="text-gray-300 mb-8">Please upload prize list and participants first</p>
+            <div class="space-x-4">
+                <a href="upload-prize.html" class="action-btn inline-block">📋 Upload Prizes</a>
+                <a href="upload-participants.html" class="action-btn inline-block">👥 Upload Participants</a>
+            </div>
+        </div>
+    `;
+}
+
+// Setup navigation event listeners
+function setupNavigation() {
+    const mobileMenuBtn = document.getElementById('mobileMenuBtn');
+    const mobileMenu = document.getElementById('mobileMenu');
+    
+    mobileMenuBtn.addEventListener('click', () => {
+        mobileMenu.classList.toggle('active');
+    });
+
+    // Logout functionality
+    document.getElementById('navLogout').addEventListener('click', logout);
+    document.getElementById('mobileLogout').addEventListener('click', logout);
+
+    function logout() {
+        if (confirm('Are you sure you want to logout? This will clear all data.')) {
+            localStorage.clear();
+            sessionStorage.clear();
+            window.location.href = 'index.html';
         }
+    }
 
-        // Show empty state when no data
-        function showEmptyState() {
-            const grid = document.getElementById('prizeGrid');
-            grid.innerHTML = `
-                <div class="col-span-full text-center py-16">
-                    <div class="text-6xl mb-4">📋</div>
-                    <h3 class="text-2xl font-semibold text-white mb-4">No Data Found</h3>
-                    <p class="text-gray-300 mb-8">Please upload prize list and participants first</p>
-                    <div class="space-x-4">
-                        <a href="upload-prize.html" class="action-btn inline-block">📋 Upload Prizes</a>
-                        <a href="upload-participants.html" class="action-btn inline-block">👥 Upload Participants</a>
-                    </div>
+    // Close mobile menu when clicking outside
+    document.addEventListener('click', (e) => {
+        if (!mobileMenuBtn.contains(e.target) && !mobileMenu.contains(e.target)) {
+            mobileMenu.classList.remove('active');
+        }
+    });
+}
+
+// Update statistics display
+function updateStatistics() {
+    const completed = prizeList.filter(p => p.winners && p.winners.length === p.qty).length;
+    const total = prizeList.length;
+    const totalWinners = allWinners.length;
+    
+    document.getElementById('progressText').textContent = `${completed}/${total} prizes completed`;
+    document.getElementById('progressFill').style.width = `${(completed / total) * 100}%`;
+    document.getElementById('participantsCount').textContent = `${participants.length} participants`;
+    document.getElementById('winnersCount').textContent = `${totalWinners} winners selected`;
+}
+
+// Render prize buttons
+function renderPrizeButtons() {
+    const grid = document.getElementById('prizeGrid');
+    grid.innerHTML = '';
+
+    prizeList.forEach((prize, index) => {
+        if (!prize.winners) prize.winners = [];
+        
+        const isCompleted = prize.winners.length === prize.qty;
+        const buttonClass = isCompleted ? 'prize-button completed' : 'prize-button';
+
+        const button = document.createElement('button');
+        button.className = buttonClass;
+        button.innerHTML = `
+            <div class="text-xl font-bold mb-2">${prize.prize}</div>
+            <div class="text-sm opacity-90 mb-2">Quantity: ${prize.qty}</div>
+            ${isCompleted ? 
+                '<div class="text-sm font-semibold">✅ Completed</div>' : 
+                prize.winners.length > 0 ? 
+                    `<div class="text-sm">Progress: ${prize.winners.length}/${prize.qty}</div>` :
+                    '<div class="text-sm">🎲 Ready to draw</div>'
+            }
+        `;
+        button.onclick = () => startPrizeDraw(index);
+        button.disabled = isCompleted;
+        
+        grid.appendChild(button);
+    });
+}
+
+// Update draw status
+function updateDrawStatus() {
+    const completed = prizeList.filter(p => p.winners && p.winners.length === p.qty).length;
+    const total = prizeList.length;
+    const status = document.getElementById('drawStatus');
+    
+    if (completed === total) {
+        status.innerHTML = `<div class="text-green-400 text-2xl">🎉 All prizes have been drawn! (${completed}/${total})</div>`;
+    } else {
+        status.innerHTML = `<div class="text-blue-400 text-lg">Progress: ${completed}/${total} prizes completed</div>`;
+    }
+}
+
+// Start prize drawing process
+function startPrizeDraw(prizeIndex) {
+    currentPrizeIndex = prizeIndex;
+    const prize = prizeList[prizeIndex];
+    
+    if (!prize.winners) prize.winners = [];
+    
+    if (prize.winners.length === prize.qty) {
+        alert('🎉 This prize has already been fully drawn!');
+        return;
+    }
+
+    // Calculate remaining winners needed
+    const remainingWinners = prize.qty - prize.winners.length;
+    
+    // For prizes > 5, divide into sets of 5
+    if (remainingWinners > 5) {
+        const winnersToDrawThisSet = Math.min(5, remainingWinners);
+        drawWinners(prize, winnersToDrawThisSet);
+    } else {
+        drawWinners(prize, remainingWinners);
+    }
+}
+
+// Get list of participant names who have already won (for eligibility check)
+function getWinnerNames() {
+    return allWinners.map(winner => winner.participantName);
+}
+
+// Draw winners for a prize
+function drawWinners(prize, count) {
+    // Show spinner
+    showSpinner(prize);
+    
+    // Get eligible participants (exclude all previous winners by name)
+    const winnerNames = getWinnerNames();
+    const eligible = participants.filter(p => !winnerNames.includes(p));
+    
+    if (eligible.length < count) {
+        alert(`❌ Not enough eligible participants! Need ${count}, but only ${eligible.length} available.`);
+        hideSpinner();
+        return;
+    }
+
+    // Simulate spinner animation for 3 seconds
+    const spinnerInterval = setInterval(() => {
+        const randomCodes = getRandomCodes(eligible, Math.min(eligible.length, 8));
+        document.getElementById('spinningCodes').innerHTML = randomCodes.join('<br>');
+    }, 150);
+
+    // Stop spinner after 3 seconds and show results
+    setTimeout(() => {
+        clearInterval(spinnerInterval);
+        
+        // Draw actual winners
+        const selectedParticipants = drawRandomWinners(eligible, count);
+        
+        // Create winner records with category information
+        const winnerRecords = selectedParticipants.map(participant => ({
+            participantName: participant,
+            prizeCategory: prize.prize,
+            prizeName: prize.prize,
+            quantity: prize.qty,
+            drawDate: new Date().toISOString(),
+            drawTimestamp: Date.now(),
+            setNumber: Math.ceil((prize.winners.length + 1) / 5),
+            totalSets: Math.ceil(prize.qty / 5),
+            prizeIndex: currentPrizeIndex
+        }));
+        
+        // Add winner records to the prize
+        prize.winners.push(...winnerRecords);
+        
+        // Add winner records to global winners list
+        allWinners.push(...winnerRecords);
+        
+        // Save to localStorage
+        localStorage.setItem('prizeList', JSON.stringify(prizeList));
+        localStorage.setItem('allWinners', JSON.stringify(allWinners));
+        
+        // Store current draw results
+        currentPrizeWinners = winnerRecords;
+        
+        // Calculate sets
+        const remainingAfterDraw = prize.qty - prize.winners.length;
+        totalSets = Math.ceil(prize.qty / 5);
+        currentSetIndex = Math.ceil(prize.winners.length / 5) - 1;
+        
+        // Hide spinner and show results
+        hideSpinner();
+        showWinnerModal(prize, winnerRecords, remainingAfterDraw > 0);
+        
+        // Update UI
+        renderPrizeButtons();
+        updateDrawStatus();
+        updateStatistics();
+        
+        // Launch celebration
+        launchCelebration();
+    }, 3000);
+}
+
+// Show spinner
+function showSpinner(prize) {
+    document.getElementById('spinnerPrize').textContent = prize.prize;
+    document.getElementById('spinnerModal').style.display = 'flex';
+}
+
+// Hide spinner
+function hideSpinner() {
+    document.getElementById('spinnerModal').style.display = 'none';
+}
+
+// Show winner modal
+function showWinnerModal(prize, winnerRecords, hasMoreSets) {
+    document.getElementById('modalTitle').textContent = `🏆 ${prize.prize} Winners`;
+    
+    // Update set counter
+    const setNumber = currentSetIndex + 1;
+    document.getElementById('winnerCount').textContent = `Set ${setNumber} of ${totalSets}`;
+    
+    // Display winners
+    displayWinners(winnerRecords);
+    
+    // Show/hide buttons based on whether there are more sets
+    const nextBtn = document.getElementById('nextBtn');
+    const closeBtn = document.getElementById('closeModal');
+    
+    if (hasMoreSets) {
+        nextBtn.style.display = 'inline-block';
+        nextBtn.disabled = false;
+        closeBtn.style.display = 'none';
+    } else {
+        nextBtn.style.display = 'none';
+        closeBtn.style.display = 'inline-block';
+    }
+    
+    // Show modal
+    document.getElementById('winnerModal').style.display = 'flex';
+}
+
+// Display winners in the modal
+function displayWinners(winnerRecords) {
+    const container = document.getElementById('winnersContainer');
+    container.innerHTML = '';
+    
+    winnerRecords.forEach((winnerRecord, index) => {
+        const card = document.createElement('div');
+        card.className = 'winner-card';
+        card.style.animationDelay = `${index * 0.1}s`;
+        card.innerHTML = `
+            <div class="flex justify-between items-center">
+                <div class="font-bold text-xl">${winnerRecord.participantName}</div>
+                <div class="text-sm opacity-90 bg-white bg-opacity-20 px-3 py-1 rounded-full">
+                    #${index + 1}
                 </div>
-            `;
+            </div>
+            <div class="text-sm opacity-80 mt-1">
+                Prize: ${winnerRecord.prizeCategory} | Set: ${winnerRecord.setNumber}
+            </div>
+        `;
+        container.appendChild(card);
+    });
+}
+
+// Setup event listeners
+function setupEventListeners() {
+    // Next button
+    document.getElementById('nextBtn').addEventListener('click', () => {
+        document.getElementById('nextBtn').disabled = true;
+        document.getElementById('winnerModal').style.display = 'none';
+        
+        // Continue drawing for the same prize
+        setTimeout(() => {
+            startPrizeDraw(currentPrizeIndex);
+        }, 500);
+    });
+
+    // Close button
+    document.getElementById('closeModal').addEventListener('click', () => {
+        document.getElementById('winnerModal').style.display = 'none';
+    });
+
+    // Reset button
+    document.getElementById('resetBtn').addEventListener('click', () => {
+        if (confirm('⚠️ Are you sure you want to reset all draws? This will clear all winners and cannot be undone.')) {
+            resetAllDraws();
         }
+    });
+}
 
-        // Setup navigation event listeners
-        function setupNavigation() {
-            const mobileMenuBtn = document.getElementById('mobileMenuBtn');
-            const mobileMenu = document.getElementById('mobileMenu');
-            
-            mobileMenuBtn.addEventListener('click', () => {
-                mobileMenu.classList.toggle('active');
-            });
+// Reset all draws
+function resetAllDraws() {
+    prizeList.forEach(prize => {
+        prize.winners = [];
+    });
+    allWinners = [];
+    localStorage.setItem('prizeList', JSON.stringify(prizeList));
+    localStorage.setItem('allWinners', JSON.stringify(allWinners));
+    renderPrizeButtons();
+    updateDrawStatus();
+    updateStatistics();
+    
+    // Show reset confirmation
+    const status = document.getElementById('drawStatus');
+    status.innerHTML = '<div class="text-yellow-400 text-lg">🔄 All draws have been reset successfully!</div>';
+    setTimeout(() => {
+        updateDrawStatus();
+    }, 3000);
+}
 
-            // Logout functionality
-            document.getElementById('navLogout').addEventListener('click', logout);
-            document.getElementById('mobileLogout').addEventListener('click', logout);
+// Get random codes for spinner display
+function getRandomCodes(eligible, count) {
+    const shuffled = [...eligible].sort(() => 0.5 - Math.random());
+    return shuffled.slice(0, count);
+}
 
-            function logout() {
-                if (confirm('Are you sure you want to logout? This will clear all data.')) {
-                    localStorage.clear();
-                    sessionStorage.clear();
-                    window.location.href = 'index.html';
-                }
-            }
+// Draw random winners using Fisher-Yates shuffle
+function drawRandomWinners(eligible, count) {
+    const shuffled = [...eligible];
+    for (let i = shuffled.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        [shuffled[i], shuffled[j]] = [shuffled[j], shuffled[i]];
+    }
+    return shuffled.slice(0, count);
+}
 
-            // Close mobile menu when clicking outside
-            document.addEventListener('click', (e) => {
-                if (!mobileMenuBtn.contains(e.target) && !mobileMenu.contains(e.target)) {
-                    mobileMenu.classList.remove('active');
-                }
-            });
-        }
+// Launch celebration animation
+function launchCelebration() {
+    // Multiple confetti bursts
+    const celebrate = () => {
+        confetti({
+            particleCount: 100,
+            spread: 70,
+            origin: { y: 0.6 },
+            colors: ['#667eea', '#764ba2', '#f093fb', '#f5576c', '#4facfe', '#00f2fe']
+        });
+    };
+    
+    celebrate();
+    setTimeout(celebrate, 300);
+    setTimeout(celebrate, 600);
+    
+    // Side cannons
+    setTimeout(() => {
+        confetti({
+            particleCount: 50,
+            angle: 60,
+            spread: 55,
+            origin: { x: 0 }
+        });
+        confetti({
+            particleCount: 50,
+            angle: 120,
+            spread: 55,
+            origin: { x: 1 }
+        });
+    }, 200);
+}
 
-        // Update statistics display
-        function updateStatistics() {
-            const completed = prizeList.filter(p => p.winners && p.winners.length === p.qty).length;
-            const total = prizeList.length;
-            const totalWinners = allWinners.length;
-            
-            document.getElementById('progressText').textContent = `${completed}/${total} prizes completed`;
-            document.getElementById('progressFill').style.width = `${(completed / total) * 100}%`;
-            document.getElementById('participantsCount').textContent = `${participants.length} participants`;
-            document.getElementById('winnersCount').textContent = `${totalWinners} winners selected`;
-        }
+// Initialize the application when DOM is loaded
+document.addEventListener('DOMContentLoaded', init);
 
-        // Render prize buttons
-        function renderPrizeButtons() {
-            const grid = document.getElementById('prizeGrid');
-            grid.innerHTML = '';
+// Utility functions for winner data analysis
+function getWinnersByCategory(category) {
+    return allWinners.filter(winner => winner.prizeCategory === category);
+}
 
-            prizeList.forEach((prize, index) => {
-                if (!prize.winners) prize.winners = [];
-                
-                const isCompleted = prize.winners.length === prize.qty;
-                const buttonClass = isCompleted ? 'prize-button completed' : 'prize-button';
+function getWinnersByDate(date) {
+    const targetDate = new Date(date).toDateString();
+    return allWinners.filter(winner => {
+        const winnerDate = new Date(winner.drawDate).toDateString();
+        return winnerDate === targetDate;
+    });
+}
 
-                const button = document.createElement('button');
-                button.className = buttonClass;
-                button.innerHTML = `
-                    <div class="text-xl font-bold mb-2">${prize.prize}</div>
-                    <div class="text-sm opacity-90 mb-2">Quantity: ${prize.qty}</div>
-                    ${isCompleted ? 
-                        '<div class="text-sm font-semibold">✅ Completed</div>' : 
-                        prize.winners.length > 0 ? 
-                            `<div class="text-sm">Progress: ${prize.winners.length}/${prize.qty}</div>` :
-                            '<div class="text-sm">🎲 Ready to draw</div>'
-                    }
-                `;
-                button.onclick = () => startPrizeDraw(index);
-                button.disabled = isCompleted;
-                
-                grid.appendChild(button);
-            });
-        }
+function getAllCategories() {
+    return [...new Set(allWinners.map(winner => winner.prizeCategory))];
+}
 
-        // Update draw status
-        function updateDrawStatus() {
-            const completed = prizeList.filter(p => p.winners && p.winners.length === p.qty).length;
-            const total = prizeList.length;
-            const status = document.getElementById('drawStatus');
-            
-            if (completed === total) {
-                status.innerHTML = `<div class="text-green-400 text-2xl">🎉 All prizes have been drawn! (${completed}/${total})</div>`;
-            } else {
-                status.innerHTML = `<div class="text-blue-400 text-lg">Progress: ${completed}/${total} prizes completed</div>`;
-            }
-        }
-
-        // Start prize drawing process
-        function startPrizeDraw(prizeIndex) {
-            currentPrizeIndex = prizeIndex;
-            const prize = prizeList[prizeIndex];
-            
-            if (!prize.winners) prize.winners = [];
-            
-            if (prize.winners.length === prize.qty) {
-                alert('🎉 This prize has already been fully drawn!');
-                return;
-            }
-
-            // Calculate remaining winners needed
-            const remainingWinners = prize.qty - prize.winners.length;
-            
-            // For prizes > 5, divide into sets of 5
-            if (remainingWinners > 5) {
-                const winnersToDrawThisSet = Math.min(5, remainingWinners);
-                drawWinners(prize, winnersToDrawThisSet);
-            } else {
-                drawWinners(prize, remainingWinners);
-            }
-        }
-
-        // Draw winners for a prize
-        function drawWinners(prize, count) {
-            // Show spinner
-            showSpinner(prize);
-            
-            // Get eligible participants (exclude all previous winners)
-            const eligible = participants.filter(p => !allWinners.includes(p));
-            
-            if (eligible.length < count) {
-                alert(`❌ Not enough eligible participants! Need ${count}, but only ${eligible.length} available.`);
-                hideSpinner();
-                return;
-            }
-
-            // Simulate spinner animation for 3 seconds
-            const spinnerInterval = setInterval(() => {
-                const randomCodes = getRandomCodes(eligible, Math.min(eligible.length, 8));
-                document.getElementById('spinningCodes').innerHTML = randomCodes.join('<br>');
-            }, 150);
-
-            // Stop spinner after 3 seconds and show results
-            setTimeout(() => {
-                clearInterval(spinnerInterval);
-                
-                // Draw actual winners
-                const winners = drawRandomWinners(eligible, count);
-                
-                // Add winners to the prize
-                prize.winners.push(...winners);
-                
-                // Add winners to global winners list
-                allWinners.push(...winners);
-                
-                // Save to localStorage
-                localStorage.setItem('prizeList', JSON.stringify(prizeList));
-                localStorage.setItem('allWinners', JSON.stringify(allWinners));
-                
-                // Store current draw results
-                currentPrizeWinners = winners;
-                
-                // Calculate sets
-                const remainingAfterDraw = prize.qty - prize.winners.length;
-                totalSets = Math.ceil(prize.qty / 5);
-                currentSetIndex = Math.ceil(prize.winners.length / 5) - 1;
-                
-                // Hide spinner and show results
-                hideSpinner();
-                showWinnerModal(prize, winners, remainingAfterDraw > 0);
-                
-                // Update UI
-                renderPrizeButtons();
-                updateDrawStatus();
-                updateStatistics();
-                
-                // Launch celebration
-                launchCelebration();
-            }, 3000);
-        }
-
-        // Show spinner
-        function showSpinner(prize) {
-            document.getElementById('spinnerPrize').textContent = prize.prize;
-            document.getElementById('spinnerModal').style.display = 'flex';
-        }
-
-        // Hide spinner
-        function hideSpinner() {
-            document.getElementById('spinnerModal').style.display = 'none';
-        }
-
-        // Show winner modal
-        function showWinnerModal(prize, winners, hasMoreSets) {
-            document.getElementById('modalTitle').textContent = `🏆 ${prize.prize} Winners`;
-            
-            // Update set counter
-            const setNumber = currentSetIndex + 1;
-            document.getElementById('winnerCount').textContent = `Set ${setNumber} of ${totalSets}`;
-            
-            // Display winners
-            displayWinners(winners);
-            
-            // Show/hide buttons based on whether there are more sets
-            const nextBtn = document.getElementById('nextBtn');
-            const closeBtn = document.getElementById('closeModal');
-            
-            if (hasMoreSets) {
-                nextBtn.style.display = 'inline-block';
-                nextBtn.disabled = false;
-                closeBtn.style.display = 'none';
-            } else {
-                nextBtn.style.display = 'none';
-                closeBtn.style.display = 'inline-block';
-            }
-            
-            // Show modal
-            document.getElementById('winnerModal').style.display = 'flex';
-        }
-
-        // Display winners in the modal
-        function displayWinners(winners) {
-            const container = document.getElementById('winnersContainer');
-            container.innerHTML = '';
-            
-            winners.forEach((winner, index) => {
-                const card = document.createElement('div');
-                card.className = 'winner-card';
-                card.style.animationDelay = `${index * 0.1}s`;
-                card.innerHTML = `
-                    <div class="flex justify-between items-center">
-                        <div class="font-bold text-xl">${winner}</div>
-                        <div class="text-sm opacity-90 bg-white bg-opacity-20 px-3 py-1 rounded-full">
-                            #${index + 1}
-                        </div>
-                    </div>
-                `;
-                container.appendChild(card);
-            });
-        }
-
-        // Setup event listeners
-        function setupEventListeners() {
-            // Next button
-            document.getElementById('nextBtn').addEventListener('click', () => {
-                document.getElementById('nextBtn').disabled = true;
-                document.getElementById('winnerModal').style.display = 'none';
-                
-                // Continue drawing for the same prize
-                setTimeout(() => {
-                    startPrizeDraw(currentPrizeIndex);
-                }, 500);
-            });
-
-            // Close button
-            document.getElementById('closeModal').addEventListener('click', () => {
-                document.getElementById('winnerModal').style.display = 'none';
-            });
-
-            // Reset button
-            document.getElementById('resetBtn').addEventListener('click', () => {
-                if (confirm('⚠️ Are you sure you want to reset all draws? This will clear all winners and cannot be undone.')) {
-                    resetAllDraws();
-                }
-            });
-        }
-
-        // Reset all draws
-        function resetAllDraws() {
-            prizeList.forEach(prize => {
-                prize.winners = [];
-            });
-            allWinners = [];
-            localStorage.setItem('prizeList', JSON.stringify(prizeList));
-            localStorage.setItem('allWinners', JSON.stringify(allWinners));
-            renderPrizeButtons();
-            updateDrawStatus();
-            updateStatistics();
-            
-            // Show reset confirmation
-            const status = document.getElementById('drawStatus');
-            status.innerHTML = '<div class="text-yellow-400 text-lg">🔄 All draws have been reset successfully!</div>';
-            setTimeout(() => {
-                updateDrawStatus();
-            }, 3000);
-        }
-
-        // Get random codes for spinner display
-        function getRandomCodes(eligible, count) {
-            const shuffled = [...eligible].sort(() => 0.5 - Math.random());
-            return shuffled.slice(0, count);
-        }
-
-        // Draw random winners using Fisher-Yates shuffle
-        function drawRandomWinners(eligible, count) {
-            const shuffled = [...eligible];
-            for (let i = shuffled.length - 1; i > 0; i--) {
-                const j = Math.floor(Math.random() * (i + 1));
-                [shuffled[i], shuffled[j]] = [shuffled[j], shuffled[i]];
-            }
-            return shuffled.slice(0, count);
-        }
-
-        // Launch celebration animation
-        function launchCelebration() {
-            // Multiple confetti bursts
-            const celebrate = () => {
-                confetti({
-                    particleCount: 100,
-                    spread: 70,
-                    origin: { y: 0.6 },
-                    colors: ['#667eea', '#764ba2', '#f093fb', '#f5576c', '#4facfe', '#00f2fe']
-                });
-            };
-            
-            celebrate();
-            setTimeout(celebrate, 300);
-            setTimeout(celebrate, 600);
-            
-            // Side cannons
-            setTimeout(() => {
-                confetti({
-                    particleCount: 50,
-                    angle: 60,
-                    spread: 55,
-                    origin: { x: 0 }
-                });
-                confetti({
-                    particleCount: 50,
-                    angle: 120,
-                    spread: 55,
-                    origin: { x: 1 }
-                });
-            }, 200);
-        }
-
-        // Initialize the application when DOM is loaded
-        document.addEventListener('DOMContentLoaded', init);
+function getWinnerStatistics() {
+    const categories = getAllCategories();
+    return categories.map(category => ({
+        category,
+        totalWinners: getWinnersByCategory(category).length,
+        winners: getWinnersByCategory(category)
+    }));
+}
     </script>
 </body>
 </html>

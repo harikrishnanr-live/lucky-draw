@@ -2,113 +2,383 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8">
-  <title>Melpadom Chundan Lucky Draw 2025 Login</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Melpadom Chundan Lucky Draw 2025 - Admin Login</title>
   <script src="https://cdn.tailwindcss.com"></script>
+  <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
+  <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
   <style>
     body {
-      background-image: url('bg3.jpg');
+      background-image: linear-gradient(135deg, rgba(59, 130, 246, 0.1) 0%, rgba(99, 102, 241, 0.1) 100%), url('bg3.jpg');
       background-size: cover;
       background-position: center;
+      background-attachment: fixed;
+    }
+    
+    .login-container {
+      backdrop-filter: blur(10px);
+      background: rgba(255, 255, 255, 0.95);
+      border: 1px solid rgba(255, 255, 255, 0.2);
+      box-shadow: 0 25px 50px rgba(0, 0, 0, 0.15);
+    }
+    
+    .input-group {
+      position: relative;
+    }
+    
+    .input-field {
+      transition: all 0.3s ease;
+    }
+    
+    .input-field:focus {
+      transform: translateY(-2px);
+      box-shadow: 0 8px 25px rgba(59, 130, 246, 0.15);
+    }
+    
+    .login-btn {
+      background: linear-gradient(135deg, #3b82f6 0%, #6366f1 100%);
+      transition: all 0.3s ease;
+    }
+    
+    .login-btn:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 10px 30px rgba(59, 130, 246, 0.3);
+    }
+    
+    .login-btn:active {
+      transform: translateY(0);
+    }
+    
+    .login-btn:disabled {
+      opacity: 0.7;
+      cursor: not-allowed;
+      transform: none;
+    }
+    
+    .error-shake {
+      animation: shake 0.5s ease-in-out;
+    }
+    
+    @keyframes shake {
+      0%, 100% { transform: translateX(0); }
+      25% { transform: translateX(-5px); }
+      75% { transform: translateX(5px); }
+    }
+    
+    .fade-in {
+      opacity: 0;
+      transform: translateY(20px);
+      animation: fadeIn 0.6s ease-out forwards;
+    }
+    
+    @keyframes fadeIn {
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+    
+    .loading-spinner {
+      border: 2px solid #f3f4f6;
+      border-top: 2px solid #3b82f6;
+      border-radius: 50%;
+      width: 16px;
+      height: 16px;
+      animation: spin 1s linear infinite;
+      display: inline-block;
+    }
+    
+    @keyframes spin {
+      0% { transform: rotate(0deg); }
+      100% { transform: rotate(360deg); }
     }
   </style>
 </head>
-<body class="flex items-center justify-center min-h-screen bg-gray-900 bg-opacity-90">
-
-  <div class="w-full max-w-sm">
-    <div class="bg-white bg-opacity-90 shadow-lg rounded-lg p-6">
-      <h4 class="text-center text-xl font-semibold mb-4 text-blue-900">
-        Melpadom Chundan Lucky Draw 2025 Login
-      </h4>
-
-      <!-- Username -->
-      <div class="mb-4">
-        <label for="username" class="block text-sm font-medium text-gray-700">Username</label>
-        <input
-          type="text"
-          id="username"
-          placeholder="Enter username"
-          class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-        />
-        <div id="usernameError" class="text-red-600 text-sm mt-1 hidden">Username required</div>
+<body class="flex items-center justify-center min-h-screen p-4">
+  
+  <!-- Background overlay -->
+  <div class="absolute inset-0 bg-gradient-to-br from-blue-900/20 to-indigo-900/20"></div>
+  
+  <div class="relative z-10 w-full max-w-md">
+    <div class="login-container rounded-2xl p-8 fade-in">
+      
+      <!-- Header -->
+      <div class="text-center mb-8">
+        <div class="inline-flex items-center justify-center w-16 h-16 bg-gradient-to-br from-blue-600 to-indigo-600 rounded-full mb-4">
+          <i class="fas fa-gift text-white text-2xl"></i>
+        </div>
+        <h1 class="text-2xl font-bold text-gray-800 mb-2">
+          Admin Login
+        </h1>
+        <p class="text-gray-600 text-sm">
+          Melpadom Chundan Lucky Draw 2025
+        </p>
       </div>
-
-      <!-- Password -->
-      <div class="mb-4 relative">
-        <label for="password" class="block text-sm font-medium text-gray-700">Password</label>
-        <input
-          type="password"
-          id="password"
-          placeholder="Enter password"
-          class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-        />
+      
+      <!-- Login Form -->
+      <form id="loginForm" class="space-y-6">
+        
+        <!-- Username Field -->
+        <div class="input-group">
+          <label for="username" class="block text-sm font-semibold text-gray-700 mb-2">
+            <i class="fas fa-user mr-2 text-blue-600"></i>
+            Username
+          </label>
+          <input
+            type="text"
+            id="username"
+            name="username"
+            placeholder="Enter your username"
+            class="input-field w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+            autocomplete="username"
+            required
+          />
+          <div id="usernameError" class="text-red-500 text-xs mt-1 hidden">
+            <i class="fas fa-exclamation-circle mr-1"></i>
+            Username is required
+          </div>
+        </div>
+        
+        <!-- Password Field -->
+        <div class="input-group">
+          <label for="password" class="block text-sm font-semibold text-gray-700 mb-2">
+            <i class="fas fa-lock mr-2 text-blue-600"></i>
+            Password
+          </label>
+          <div class="relative">
+            <input
+              type="password"
+              id="password"
+              name="password"
+              placeholder="Enter your password"
+              class="input-field w-full px-4 py-3 pr-12 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+              autocomplete="current-password"
+              required
+            />
+            <button
+              type="button"
+              id="togglePassword"
+              class="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-500 hover:text-blue-600 transition-colors duration-200"
+            >
+              <i class="fas fa-eye" id="eyeIcon"></i>
+            </button>
+          </div>
+          <div id="passwordError" class="text-red-500 text-xs mt-1 hidden">
+            <i class="fas fa-exclamation-circle mr-1"></i>
+            Password is required
+          </div>
+        </div>
+        
+        <!-- Error Message -->
+        <div id="loginError" class="text-red-500 text-sm p-3 bg-red-50 border border-red-200 rounded-lg hidden">
+          <i class="fas fa-exclamation-triangle mr-2"></i>
+          Invalid username or password. Please try again.
+        </div>
+        
+        <!-- Login Button -->
         <button
-          type="button"
-          onclick="togglePassword()"
-          class="absolute right-3 top-9 text-gray-500 hover:text-blue-600"
+          type="submit"
+          id="loginBtn"
+          class="login-btn w-full text-white py-3 px-6 rounded-lg font-semibold text-sm uppercase tracking-wide"
         >
-          <span class="material-icons">visibility</span>
+          <span id="loginBtnText">
+            <i class="fas fa-sign-in-alt mr-2"></i>
+            Sign In
+          </span>
+          <span id="loginBtnLoading" class="hidden">
+            <span class="loading-spinner mr-2"></span>
+            Authenticating...
+          </span>
         </button>
-        <div id="passwordError" class="text-red-600 text-sm mt-1 hidden">Password required</div>
+        
+      </form>
+      
+      <!-- Footer -->
+      <div class="mt-8 text-center">
+        <p class="text-xs text-gray-500">
+          <i class="fas fa-shield-alt mr-1"></i>
+          Secure Admin Access Only
+        </p>
       </div>
-
-      <!-- Error Message -->
-      <div id="loginError" class="text-red-600 text-sm mb-3 hidden">Invalid credentials</div>
-
-      <!-- Login Button -->
-      <button
-        onclick="login()"
-        class="w-full bg-blue-600 text-white py-2 rounded-md hover:bg-blue-700"
-      >
-        Login
-      </button>
+      
     </div>
   </div>
-
-  <!-- Icons for password toggle -->
-  <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet" />
-
-  <!-- Script -->
+  
+  <!-- Scripts -->
   <script>
+    // DOM Elements
+    const loginForm = document.getElementById("loginForm");
     const usernameInput = document.getElementById("username");
     const passwordInput = document.getElementById("password");
+    const togglePasswordBtn = document.getElementById("togglePassword");
+    const eyeIcon = document.getElementById("eyeIcon");
+    const loginBtn = document.getElementById("loginBtn");
+    const loginBtnText = document.getElementById("loginBtnText");
+    const loginBtnLoading = document.getElementById("loginBtnLoading");
+    
+    // Error elements
     const usernameError = document.getElementById("usernameError");
     const passwordError = document.getElementById("passwordError");
     const loginError = document.getElementById("loginError");
-
+    
+    // Clear all error messages
     function clearErrors() {
       usernameError.classList.add("hidden");
       passwordError.classList.add("hidden");
       loginError.classList.add("hidden");
+      
+      // Remove error styling
+      usernameInput.classList.remove("border-red-500", "error-shake");
+      passwordInput.classList.remove("border-red-500", "error-shake");
     }
-
-    usernameInput.addEventListener("input", clearErrors);
-    passwordInput.addEventListener("input", clearErrors);
-
-    function login() {
-      const user = usernameInput.value.trim();
-      const pass = passwordInput.value.trim();
-      clearErrors();
-
-      if (!user) {
-        usernameError.classList.remove("hidden");
-        return;
-      }
-      if (!pass) {
-        passwordError.classList.remove("hidden");
-        return;
-      }
-
-      if (user === "admin" && pass === "admin") {
-        localStorage.setItem("user", user);
-        window.location.href = "upload-prize.html";
-      } else {
-        loginError.classList.remove("hidden");
-      }
+    
+    // Show specific error
+    function showError(element, errorDiv) {
+      errorDiv.classList.remove("hidden");
+      element.classList.add("border-red-500", "error-shake");
+      element.focus();
+      
+      // Remove shake animation after completion
+      setTimeout(() => {
+        element.classList.remove("error-shake");
+      }, 500);
     }
-
+    
+    // Toggle password visibility
     function togglePassword() {
       const type = passwordInput.getAttribute("type") === "password" ? "text" : "password";
       passwordInput.setAttribute("type", type);
+      
+      // Toggle eye icon
+      if (type === "password") {
+        eyeIcon.classList.remove("fa-eye-slash");
+        eyeIcon.classList.add("fa-eye");
+      } else {
+        eyeIcon.classList.remove("fa-eye");
+        eyeIcon.classList.add("fa-eye-slash");
+      }
+    }
+    
+    // Show loading state
+    function showLoading() {
+      loginBtn.disabled = true;
+      loginBtnText.classList.add("hidden");
+      loginBtnLoading.classList.remove("hidden");
+    }
+    
+    // Hide loading state
+    function hideLoading() {
+      loginBtn.disabled = false;
+      loginBtnText.classList.remove("hidden");
+      loginBtnLoading.classList.add("hidden");
+    }
+    
+    // Validate form
+    function validateForm() {
+      clearErrors();
+      
+      const username = usernameInput.value.trim();
+      const password = passwordInput.value.trim();
+      let isValid = true;
+      
+      if (!username) {
+        showError(usernameInput, usernameError);
+        isValid = false;
+      }
+      
+      if (!password) {
+        showError(passwordInput, passwordError);
+        isValid = false;
+      }
+      
+      return isValid;
+    }
+    
+    // Login function
+    async function login() {
+      if (!validateForm()) {
+        return;
+      }
+      
+      const username = usernameInput.value.trim();
+      const password = passwordInput.value.trim();
+      
+      // Show loading state
+      showLoading();
+      
+      try {
+        // Simulate API call delay for better UX
+        await new Promise(resolve => setTimeout(resolve, 800));
+        
+        // Check credentials
+        if (username === "admin" && password === "admin") {
+          // Store user session
+          localStorage.setItem("user", username);
+          localStorage.setItem("loginTime", new Date().toISOString());
+          
+          // Success feedback
+          loginBtnText.innerHTML = '<i class="fas fa-check mr-2"></i>Success!';
+          loginBtn.classList.add("bg-green-600");
+          
+          // Redirect after short delay
+          setTimeout(() => {
+            window.location.href = "upload-prize.html";
+          }, 1000);
+          
+        } else {
+          // Show error
+          hideLoading();
+          loginError.classList.remove("hidden");
+          
+          // Clear form
+          passwordInput.value = "";
+          usernameInput.focus();
+        }
+        
+      } catch (error) {
+        hideLoading();
+        loginError.textContent = "An error occurred. Please try again.";
+        loginError.classList.remove("hidden");
+      }
+    }
+    
+    // Event Listeners
+    loginForm.addEventListener("submit", (e) => {
+      e.preventDefault();
+      login();
+    });
+    
+    togglePasswordBtn.addEventListener("click", togglePassword);
+    
+    // Clear errors on input
+    usernameInput.addEventListener("input", clearErrors);
+    passwordInput.addEventListener("input", clearErrors);
+    
+    // Enter key support (already handled by form submit)
+    // Additional support for individual fields
+    usernameInput.addEventListener("keypress", (e) => {
+      if (e.key === "Enter") {
+        if (usernameInput.value.trim()) {
+          passwordInput.focus();
+        }
+      }
+    });
+    
+    passwordInput.addEventListener("keypress", (e) => {
+      if (e.key === "Enter") {
+        login();
+      }
+    });
+    
+    // Focus management
+    document.addEventListener("DOMContentLoaded", () => {
+      usernameInput.focus();
+    });
+    
+    // Check if user is already logged in
+    if (localStorage.getItem("user")) {
+      // Optional: redirect to dashboard if already logged in
+      // window.location.href = "upload-prize.html";
     }
   </script>
 </body>

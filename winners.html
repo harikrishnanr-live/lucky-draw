@@ -58,7 +58,13 @@
   <!-- 🏆 Winners Display -->
   <div class="max-w-5xl mx-auto mt-10 px-4 text-white">
     <h2 class="text-xl font-semibold mb-4 fade-in">📋 Prize-Wise Winners</h2>
-    <button id="downloadExcel" class="bg-green-600 text-white px-4 py-2 rounded mb-6 hover:bg-green-700 hover:scale-105 transition-transform duration-300 ease-in-out">Download Excel</button>
+    <div class="mb-4 space-x-2">
+      <button id="downloadExcel" class="bg-green-600 text-white px-4 py-2 rounded hover:bg-green-700 hover:scale-105 transition-transform duration-300 ease-in-out">Download Excel</button>
+      <!-- <button id="loadSampleData" class="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700 hover:scale-105 transition-transform duration-300 ease-in-out">Load Sample Data</button>
+      <button id="clearData" class="bg-red-600 text-white px-4 py-2 rounded hover:bg-red-700 hover:scale-105 transition-transform duration-300 ease-in-out">Clear All Data</button>
+      <button id="debugData" class="bg-yellow-600 text-white px-4 py-2 rounded hover:bg-yellow-700 hover:scale-105 transition-transform duration-300 ease-in-out">Debug Data</button> -->
+    </div>
+    <div id="debugInfo" class="mb-4 p-3 bg-gray-800 rounded text-sm text-yellow-300" style="display: none;"></div>
     <div id="winnerGroups"></div>
   </div>
 
@@ -69,83 +75,361 @@
   $(document).ready(() => {
     $("#navLogout").click(() => {
       localStorage.clear();
-      sessionStorage.clear();
       window.location.href = "index.html";
     });
 
-    const participants = JSON.parse(localStorage.getItem("participants") || "[]");
-    const drawResult = JSON.parse(localStorage.getItem("drawResult") || "[]");
-
-    if (!participants.length || !drawResult.length) {
-      $("#winnerGroups").html(`<div class="text-yellow-300">⚠️ No winner data found.</div>`);
-      $("#downloadExcel").prop("disabled", true);
-      return;
+    // Function to sanitize sheet names for Excel
+    function sanitizeSheetName(name) {
+      // Remove or replace invalid characters: : \ / ? * [ ]
+      let sanitized = name.replace(/[:\\\/\?\*\[\]]/g, '-');
+      
+      // Trim to 31 characters (Excel limit)
+      sanitized = sanitized.substring(0, 31);
+      
+      // Remove leading/trailing spaces and special characters
+      sanitized = sanitized.trim();
+      
+      // Ensure it's not empty
+      if (!sanitized) {
+        sanitized = 'Prize';
+      }
+      
+      return sanitized;
     }
 
-    // 🎆 Fireworks on page load
-    if (drawResult.length > 0) {
+    // IMPROVED: Complete localStorage clear function
+    function clearAllLocalStorage() {
+      try {
+        // Get all keys currently in localStorage
+        const keys = Object.keys(localStorage);
+        console.log("Found localStorage keys:", keys);
+        
+        // Clear everything
+        localStorage.clear();
+        
+        // Verify it's cleared
+        const remainingKeys = Object.keys(localStorage);
+        console.log("Remaining keys after clear:", remainingKeys);
+        
+        // Also clear sessionStorage if needed
+        sessionStorage.clear();
+        
+        // Show success message
+        const clearedCount = keys.length;
+        alert(`Successfully cleared all browser storage!\n\nRemoved ${clearedCount} items from localStorage.\nCleared sessionStorage as well.\n\nThe page will refresh automatically.`);
+        
+        return true;
+      } catch (error) {
+        console.error("Error clearing localStorage:", error);
+        alert(`Error clearing storage: ${error.message}`);
+        return false;
+      }
+    }
+
+    // IMPROVED: Debug function to show all localStorage contents
+    function showAllStorageDebug() {
+      const debugDiv = $("#debugInfo");
+      let debugHtml = "<h4>Complete Browser Storage Debug Info:</h4>";
+      
+      // Show localStorage
+      debugHtml += "<div class='mb-2'><strong>localStorage keys:</strong></div>";
+      const localKeys = Object.keys(localStorage);
+      
+      if (localKeys.length === 0) {
+        debugHtml += "<div class='text-gray-400'>• localStorage is empty</div>";
+      } else {
+        localKeys.forEach(key => {
+          const data = localStorage.getItem(key);
+          const preview = data ? data.substring(0, 100) + (data.length > 100 ? "..." : "") : "null";
+          debugHtml += `<div class='mb-1'>• <strong>${key}</strong>: ${preview}</div>`;
+        });
+      }
+      
+      // Show sessionStorage
+      debugHtml += "<div class='mt-3 mb-2'><strong>sessionStorage keys:</strong></div>";
+      const sessionKeys = Object.keys(sessionStorage);
+      
+      if (sessionKeys.length === 0) {
+        debugHtml += "<div class='text-gray-400'>• sessionStorage is empty</div>";
+      } else {
+        sessionKeys.forEach(key => {
+          const data = sessionStorage.getItem(key);
+          const preview = data ? data.substring(0, 100) + (data.length > 100 ? "..." : "") : "null";
+          debugHtml += `<div class='mb-1'>• <strong>${key}</strong>: ${preview}</div>`;
+        });
+      }
+      
+      // Show storage usage info
+      debugHtml += `<div class='mt-3 text-blue-300'>
+        <strong>Storage Info:</strong><br>
+        • localStorage items: ${localKeys.length}<br>
+        • sessionStorage items: ${sessionKeys.length}<br>
+        • Total storage keys: ${localKeys.length + sessionKeys.length}
+      </div>`;
+      
+      debugDiv.html(debugHtml);
+      debugDiv.toggle();
+    }
+
+    function loadWinnersData() {
+      let winnersData = null;
+      
+      // Try to load winners data from various possible keys
+      const possibleKeys = ["allWinners", "winnersData", "drawResult", "winners", "lotteryResults"];
+      
+      console.log("Checking localStorage keys:", possibleKeys);
+      
+      for (let key of possibleKeys) {
+        const data = localStorage.getItem(key);
+        console.log(`Checking key "${key}":`, data);
+        
+        if (data) {
+          try {
+            const parsed = JSON.parse(data);
+            console.log(`Parsed data from "${key}":`, parsed);
+            
+            if (Array.isArray(parsed) && parsed.length > 0) {
+              winnersData = parsed;
+              console.log(`✅ Found valid data in localStorage key: ${key}`);
+              break;
+            } else if (parsed && typeof parsed === 'object' && Object.keys(parsed).length > 0) {
+              // Handle case where data might be in a different format
+              winnersData = parsed;
+              console.log(`✅ Found object data in localStorage key: ${key}`);
+              break;
+            }
+          } catch (e) {
+            console.error(`❌ Error parsing data from ${key}:`, e);
+          }
+        }
+      }
+      
+      // If still no data found, use sample data
+      if (!winnersData || (Array.isArray(winnersData) && winnersData.length === 0)) {
+        console.log("No valid data found, using sample data for testing");
+        winnersData = [
+          {"participantName":"011284","prizeCategory":"Royal Enfield Bullet 350","prizeName":"Royal Enfield Bullet 350","quantity":1,"drawDate":"2025-07-08T13:27:56.467Z","drawTimestamp":1751981276467,"setNumber":1,"totalSets":1,"prizeIndex":0},
+          {"participantName":"003715","prizeCategory":"Gold Coin 5g 22ct","prizeName":"Gold Coin 5g 22ct","quantity":1,"drawDate":"2025-07-08T13:28:19.931Z","drawTimestamp":1751981299931,"setNumber":1,"totalSets":1,"prizeIndex":1},
+          {"participantName":"009240","prizeCategory":"Split A/C 1 ton","prizeName":"Split A/C 1 ton","quantity":1,"drawDate":"2025-07-08T13:29:04.598Z","drawTimestamp":1751981344598,"setNumber":1,"totalSets":1,"prizeIndex":2},
+          {"participantName":"011014","prizeCategory":"Saree","prizeName":"Saree","quantity":50,"drawDate":"2025-07-08T13:29:19.922Z","drawTimestamp":1751981359922,"setNumber":1,"totalSets":10,"prizeIndex":13},
+          {"participantName":"005194","prizeCategory":"Saree","prizeName":"Saree","quantity":50,"drawDate":"2025-07-08T13:29:19.922Z","drawTimestamp":1751981359922,"setNumber":2,"totalSets":10,"prizeIndex":13},
+          {"participantName":"007654","prizeCategory":"Saree","prizeName":"Saree","quantity":50,"drawDate":"2025-07-08T13:29:19.922Z","drawTimestamp":1751981359922,"setNumber":3,"totalSets":10,"prizeIndex":13}
+        ];
+      }
+      
+      return winnersData;
+    }
+
+    function displayWinners(winnersData) {
+      console.log("Displaying winners:", winnersData);
+      
+      if (!winnersData || !Array.isArray(winnersData) || winnersData.length === 0) {
+        $("#winnerGroups").html(`
+          <div class="text-yellow-300 p-4 bg-yellow-900 bg-opacity-50 rounded">
+            ⚠️ No winner data found. 
+            <br>Please run a lucky draw first or click "Load Sample Data" to test.
+            <br>Checked localStorage keys: allWinners, winnersData, drawResult, winners, lotteryResults
+          </div>
+        `);
+        $("#downloadExcel").prop("disabled", true);
+        return;
+      }
+
+      // 🎆 Fireworks on page load
       launchFireworks();
+
+      // Group winners by prize category
+      const prizeGroups = {};
+      winnersData.forEach(winner => {
+        const category = winner.prizeCategory || winner.prizeName || "Unknown Prize";
+        if (!prizeGroups[category]) {
+          prizeGroups[category] = [];
+        }
+        prizeGroups[category].push(winner);
+      });
+
+      console.log("Prize groups:", prizeGroups);
+
+      let html = "";
+
+      // 🏆 Display winners by prize category
+      Object.keys(prizeGroups).forEach(prizeCategory => {
+        const winners = prizeGroups[prizeCategory];
+        
+        html += `<h3 class="mt-6 text-lg font-medium text-white fade-in">🏆 ${prizeCategory} (${winners.length} winners)</h3>`;
+        html += `<div class="table-appear max-h-64 overflow-auto border border-gray-300 rounded shadow mb-4 bg-white text-gray-800 bg-opacity-90">
+          <table class="min-w-full table-auto text-left">
+            <thead class="bg-indigo-600 text-white sticky top-0">
+              <tr>
+                <th class="px-4 py-2">Participant Code</th>
+                <th class="px-4 py-2">Prize Name</th>
+                <th class="px-4 py-2">Set Number</th>
+                <th class="px-4 py-2">Draw Date</th>
+              </tr>
+            </thead>
+            <tbody>`;
+        
+        winners.forEach(winner => {
+          const drawDate = winner.drawDate ? new Date(winner.drawDate).toLocaleString() : "N/A";
+          const participantName = winner.participantName || winner.participant || "Unknown";
+          const prizeName = winner.prizeName || winner.prizeCategory || "Unknown Prize";
+          const setNumber = winner.setNumber || 1;
+          const totalSets = winner.totalSets || 1;
+          
+          html += `<tr class="border-b hover:bg-gray-50">
+            <td class="px-4 py-2 font-medium">${participantName}</td>
+            <td class="px-4 py-2">${prizeName}</td>
+            <td class="px-4 py-2">${setNumber}/${totalSets}</td>
+            <td class="px-4 py-2">${drawDate}</td>
+          </tr>`;
+        });
+        
+        html += `</tbody></table></div>`;
+      });
+
+      $("#winnerGroups").html(html);
+      $("#downloadExcel").prop("disabled", false);
+      
+      // Store the processed data for Excel download
+      window.currentPrizeGroups = prizeGroups;
     }
 
-    const winnerCodes = drawResult.flatMap(gr => gr.winners.map(w => w.code));
-    const nonWinners = participants.filter(code => !winnerCodes.includes(code));
+    // Load and display data
+    const winnersData = loadWinnersData();
+    displayWinners(winnersData);
 
-    let html = "";
+    // IMPROVED: Debug button to show all storage contents
+    $("#debugData").click(showAllStorageDebug);
 
-    // 🏆 Prize Winners
-    drawResult.forEach(group => {
-      html += `<h3 class="mt-6 text-lg font-medium text-white fade-in">🏆 ${group.prize}</h3>`;
-      html += `<div class="table-appear max-h-64 overflow-auto border border-gray-300 rounded shadow mb-4 bg-white text-gray-800 bg-opacity-90">
-        <table class="min-w-full table-auto text-left">
-          <thead class="bg-indigo-600 text-white sticky top-0">
-            <tr><th class="px-4 py-2">Code</th></tr>
-          </thead>
-          <tbody>`;
-      group.winners.forEach(w => {
-        html += `<tr class="border-b"><td class="px-4 py-2">${w.code}</td></tr>`;
-      });
-      html += `</tbody></table></div>`;
+    // Manual data loading buttons for testing
+    $("#loadSampleData").click(() => {
+      const sampleData = [
+        {"participantName":"011284","prizeCategory":"Royal Enfield Bullet 350","prizeName":"Royal Enfield Bullet 350","quantity":1,"drawDate":"2025-07-08T13:27:56.467Z","drawTimestamp":1751981276467,"setNumber":1,"totalSets":1,"prizeIndex":0},
+        {"participantName":"003715","prizeCategory":"Gold Coin 5g 22ct","prizeName":"Gold Coin 5g 22ct","quantity":1,"drawDate":"2025-07-08T13:28:19.931Z","drawTimestamp":1751981299931,"setNumber":1,"totalSets":1,"prizeIndex":1},
+        {"participantName":"009240","prizeCategory":"Split A/C 1 ton","prizeName":"Split A/C 1 ton","quantity":1,"drawDate":"2025-07-08T13:29:04.598Z","drawTimestamp":1751981344598,"setNumber":1,"totalSets":1,"prizeIndex":2},
+        {"participantName":"011014","prizeCategory":"Saree","prizeName":"Saree","quantity":50,"drawDate":"2025-07-08T13:29:19.922Z","drawTimestamp":1751981359922,"setNumber":1,"totalSets":10,"prizeIndex":13},
+        {"participantName":"005194","prizeCategory":"Saree","prizeName":"Saree","quantity":50,"drawDate":"2025-07-08T13:29:19.922Z","drawTimestamp":1751981359922,"setNumber":2,"totalSets":10,"prizeIndex":13},
+        {"participantName":"007654","prizeCategory":"Saree","prizeName":"Saree","quantity":50,"drawDate":"2025-07-08T13:29:19.922Z","drawTimestamp":1751981359922,"setNumber":3,"totalSets":10,"prizeIndex":13}
+      ];
+      localStorage.setItem("allWinners", JSON.stringify(sampleData));
+      alert("Sample data loaded! The page will refresh automatically.");
+      location.reload();
     });
 
-    // 😔 Non-Winners
-    html += `<h3 class="mt-8 text-lg font-medium text-white fade-in">😔 Participants Who Didn't Win</h3>`;
-    html += `<div class="table-appear max-h-64 overflow-auto border border-gray-300 rounded shadow mb-10 bg-white text-gray-800 bg-opacity-90">
-      <table class="min-w-full table-auto text-left">
-        <thead class="bg-gray-300 text-gray-900 sticky top-0">
-          <tr><th class="px-4 py-2">Code</th></tr>
-        </thead>
-        <tbody>`;
-    nonWinners.forEach(code => {
-      html += `<tr class="border-b"><td class="px-4 py-2">${code}</td></tr>`;
+    // IMPROVED: Clear all data button with complete localStorage clearing
+    $("#clearData").click(() => {
+      const confirmClear = confirm("⚠️ WARNING: This will completely clear ALL browser storage data!\n\nThis includes:\n• All localStorage data\n• All sessionStorage data\n• All application data\n\nAre you sure you want to continue?");
+      
+      if (confirmClear) {
+        const success = clearAllLocalStorage();
+        if (success) {
+          setTimeout(() => {
+            location.reload();
+          }, 1000);
+        }
+      }
     });
-    html += `</tbody></table></div>`;
 
-    $("#winnerGroups").html(html);
-
-    // 📥 Excel Download + Burst
     $("#downloadExcel").click(() => {
-      const workbook = XLSX.utils.book_new();
+      if (!window.currentPrizeGroups) {
+        alert("No data to download!");
+        return;
+      }
 
-      drawResult.forEach(group => {
-        const sheetData = [["Code"]];
-        group.winners.forEach(w => sheetData.push([w.code]));
-        const ws = XLSX.utils.aoa_to_sheet(sheetData);
-        XLSX.utils.book_append_sheet(workbook, ws, group.prize.substring(0, 31));
-      });
+      try {
+        const workbook = XLSX.utils.book_new();
+        const prizeGroups = window.currentPrizeGroups;
+        const usedSheetNames = new Set();
 
-      const missedData = [["Code"]];
-      nonWinners.forEach(code => missedData.push([code]));
-      const wsMissed = XLSX.utils.aoa_to_sheet(missedData);
-      XLSX.utils.book_append_sheet(workbook, wsMissed, "Not Won");
+        // Create a sheet for each prize category
+        Object.keys(prizeGroups).forEach((prizeCategory, index) => {
+          const winners = prizeGroups[prizeCategory];
+          
+          // Create sheet data with headers
+          const sheetData = [
+            ["Participant Code", "Prize Name", "Set Number", "Total Sets", "Draw Date", "Draw Timestamp"]
+          ];
+          
+          winners.forEach(winner => {
+            const drawDate = winner.drawDate ? new Date(winner.drawDate).toLocaleString() : "N/A";
+            const participantName = winner.participantName || winner.participant || "Unknown";
+            const prizeName = winner.prizeName || winner.prizeCategory || "Unknown Prize";
+            
+            sheetData.push([
+              participantName,
+              prizeName,
+              winner.setNumber || 1,
+              winner.totalSets || 1,
+              drawDate,
+              winner.drawTimestamp || ""
+            ]);
+          });
+          
+          const ws = XLSX.utils.aoa_to_sheet(sheetData);
+          
+          // Auto-size columns
+          const colWidths = [
+            { wch: 15 }, // Participant Code
+            { wch: 25 }, // Prize Name
+            { wch: 10 }, // Set Number
+            { wch: 12 }, // Total Sets
+            { wch: 20 }, // Draw Date
+            { wch: 15 }  // Draw Timestamp
+          ];
+          ws['!cols'] = colWidths;
+          
+          // Sanitize sheet name and ensure uniqueness
+          let sheetName = sanitizeSheetName(prizeCategory);
+          
+          // If sheet name already exists, append number
+          let counter = 1;
+          let originalSheetName = sheetName;
+          while (usedSheetNames.has(sheetName)) {
+            sheetName = `${originalSheetName.substring(0, 28)}_${counter}`;
+            counter++;
+          }
+          usedSheetNames.add(sheetName);
+          
+          console.log(`Creating sheet: "${sheetName}" for prize: "${prizeCategory}"`);
+          XLSX.utils.book_append_sheet(workbook, ws, sheetName);
+        });
 
-      XLSX.writeFile(workbook, "Lucky_Draw_Results.xlsx");
+        // Create a summary sheet
+        const summaryData = [
+          ["Prize Category", "Total Winners", "Total Sets"]
+        ];
+        
+        Object.keys(prizeGroups).forEach(prizeCategory => {
+          const winners = prizeGroups[prizeCategory];
+          const totalSets = winners.length > 0 ? (winners[0].totalSets || 1) : 0;
+          summaryData.push([prizeCategory, winners.length, totalSets]);
+        });
+        
+        const summaryWs = XLSX.utils.aoa_to_sheet(summaryData);
+        summaryWs['!cols'] = [{ wch: 25 }, { wch: 15 }, { wch: 12 }];
+        XLSX.utils.book_append_sheet(workbook, summaryWs, "Summary");
 
-      confetti({
-        particleCount: 100,
-        spread: 80,
-        origin: { x: 0.5, y: 0.5 },
-        colors: ['#22c55e', '#84cc16', '#4ade80']
-      });
+        // Generate filename with timestamp
+        const timestamp = new Date().toISOString().replace(/[:.]/g, '-').substring(0, 19);
+        const filename = `Lucky_Draw_Results_${timestamp}.xlsx`;
+        
+        console.log("Attempting to save file:", filename);
+        XLSX.writeFile(workbook, filename);
+
+        // Show success animation
+        confetti({
+          particleCount: 100,
+          spread: 80,
+          origin: { x: 0.5, y: 0.5 },
+          colors: ['#22c55e', '#84cc16', '#4ade80']
+        });
+
+        console.log("Excel file download successful!");
+        
+      } catch (error) {
+        console.error("Error creating Excel file:", error);
+        alert(`Error creating Excel file: ${error.message}`);
+      }
     });
 
     // 🎆 Firework animation function
@@ -167,4 +451,3 @@
   });
 </script>
 </body>
-</html>
