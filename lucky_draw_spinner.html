@@ -32,6 +32,19 @@
             box-shadow: 0 25px 50px rgba(0, 0, 0, 0.5);
         }
 
+        .spinner-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.95);
+            display: none;
+            justify-content: center;
+            align-items: center;
+            z-index: 1001;
+        }
+
         .spinner-container {
             width: 350px;
             height: 350px;
@@ -237,62 +250,6 @@
             border-radius: 10px;
             transition: width 0.3s ease;
         }
-
-        .spinner-overlay {
-    position: fixed;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 100%;
-    background: rgba(0, 0, 0, 0.9); /* Dark overlay for the modal */
-    display: none;
-    justify-content: center;
-    align-items: center;
-    z-index: 1001;
-}
-
-       .odometer {
-    font-family: 'Poppins', sans-serif; /* Use the same font as the modal */
-    font-size: 72px; /* Increased font size for better visibility */
-    color: #fff; /* White text for contrast */
-    background: linear-gradient(135deg, #10b981, #059669); /* Match modal colors */
-    padding: 20px;
-    border-radius: 20px; /* Rounded corners */
-    display: inline-block;
-    letter-spacing: 5px; /* Increased letter spacing */
-    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5); /* Shadow effect */
-    transition: transform 0.5s ease-in-out, box-shadow 0.3s ease; /* Smooth transition */
-    position: relative; /* Position relative for pseudo-elements */
-}
-
-.odometer::before {
-    content: '';
-    position: absolute;
-    top: 0;
-    left: 0;
-    right: 0;
-    bottom: 0;
-    background: rgba(255, 255, 255, 0.1); /* Light overlay */
-    border-radius: 20px; /* Match the border radius */
-    animation: pulse 1.5s infinite; /* Pulse effect */
-    z-index: 0; /* Behind the text */
-}
-
-@keyframes pulse {
-    0% {
-        transform: scale(1);
-        opacity: 0.5;
-    }
-    50% {
-        transform: scale(1.05);
-        opacity: 0.7;
-    }
-    100% {
-        transform: scale(1);
-        opacity: 0.5;
-    }
-}
-
     </style>
 </head>
 <body class="bg-gradient-to-br from-purple-900 via-blue-900 to-indigo-900 min-h-screen">
@@ -386,18 +343,6 @@
             </button>
         </div>
     </div>
-
-    <!-- Odometer Modal -->
-<!-- Odometer Modal -->
-<div id="odometerModal" class="spinner-overlay">
-    <div class="text-center">
-        <div class="odometer" id="odometer">000000</div>
-        <div class="text-white text-2xl mt-6 font-bold" id="odometerPrize">Prize Name</div>
-        <div class="text-gray-300 mt-2 text-lg">🎲 Drawing winners...</div>
-    </div>
-</div>
-
-
 
     <!-- Spinner Modal -->
     <div id="spinnerModal" class="spinner-overlay">
@@ -571,16 +516,13 @@ function startPrizeDraw(prizeIndex) {
     if (!prize.winners) prize.winners = [];
     
     if (prize.winners.length === prize.qty) {
-        // alert('🎉 This prize has already been fully drawn!');
+        alert('🎉 This prize has already been fully drawn!');
         return;
     }
 
     // Calculate remaining winners needed
     const remainingWinners = prize.qty - prize.winners.length;
     
-    // Calculate total sets based on the prize quantity
-    totalSets = Math.ceil(prize.qty / 5); // Assuming 5 winners per set
-
     // For prizes > 5, divide into sets of 5
     if (remainingWinners > 5) {
         const winnersToDrawThisSet = Math.min(5, remainingWinners);
@@ -595,25 +537,10 @@ function getWinnerNames() {
     return allWinners.map(winner => winner.participantName);
 }
 
-// Generate an array of coupon codes from 00001 to 12500
-const couponCodes = Array.from({ length: 12500 }, (_, i) => (i + 1).toString().padStart(5, '0'));
-
-// Function to shuffle the array
-function shuffleArray(array) {
-    for (let i = array.length - 1; i > 0; i--) {
-        const j = Math.floor(Math.random() * (i + 1));
-        [array[i], array[j]] = [array[j], array[i]]; // Swap elements
-    }
-}
-
-// Shuffle the coupon codes
-shuffleArray(couponCodes);
-let currentCouponIndex = 0; // To keep track of the current coupon code being displayed
-
 // Draw winners for a prize
 function drawWinners(prize, count) {
-    // Show odometer
-    showOdometer(prize);
+    // Show spinner
+    showSpinner(prize);
     
     // Get eligible participants (exclude all previous winners by name)
     const winnerNames = getWinnerNames();
@@ -621,126 +548,67 @@ function drawWinners(prize, count) {
     
     if (eligible.length < count) {
         alert(`❌ Not enough eligible participants! Need ${count}, but only ${eligible.length} available.`);
-        hideOdometer();
+        hideSpinner();
         return;
     }
 
-    // Start odometer animation
-    const odometer = document.getElementById('odometer');
-    let startTime = Date.now();
-    let duration = 20000; // 20 seconds
-    let interval = setInterval(() => {
-        let elapsed = Date.now() - startTime;
-        let progress = Math.min(elapsed / duration, 1);
-        
-        // Display the current coupon code
-        odometer.textContent = couponCodes[currentCouponIndex];
-        
-        // Increment the coupon index for the next display
-        currentCouponIndex++;
-        if (currentCouponIndex >= couponCodes.length) {
-            currentCouponIndex = 0; // Reset to the beginning if we reach the end
-        }
+    // Simulate spinner animation for 3 seconds
+    const spinnerInterval = setInterval(() => {
+        const randomCodes = getRandomCodes(eligible, Math.min(eligible.length, 8));
+        document.getElementById('spinningCodes').innerHTML = randomCodes.join('<br>');
+    }, 150);
 
-        if (progress === 1) {
-            clearInterval(interval);
-            // Draw actual winners
-            const selectedParticipants = drawRandomWinners(eligible, count);
-            // Create winner records with category information
-            const winnerRecords = selectedParticipants.map(participant => ({
-                participantName: participant,
-                prizeCategory: prize.prize,
-                prizeName: prize.prize,
-                quantity: prize.qty,
-                drawDate: new Date().toISOString(),
-                drawTimestamp: Date.now(),
-                setNumber: Math.ceil((prize.winners.length + count) / 5), // Calculate current set number
-                totalSets: totalSets, // Use the updated totalSets
-                prizeIndex: currentPrizeIndex
-            }));
-            
-            // Add winner records to the prize
-            prize.winners.push(...winnerRecords);
-            // Add winner records to global winners list
-            allWinners.push(...winnerRecords);
-            // Save to localStorage
-            localStorage.setItem('prizeList', JSON.stringify(prizeList));
-            localStorage.setItem('allWinners', JSON.stringify(allWinners));
-            // Store current draw results
-            currentPrizeWinners = winnerRecords;
-            // Hide odometer and show results
-            hideOdometer();
-            showWinnerModal(prize, winnerRecords, true);
-            
-            // Launch fireworks celebration
-            launchFireworks();
-            
-            // Update UI
-            renderPrizeButtons();
-            updateDrawStatus();
-            updateStatistics();
-
-            // Show or hide buttons based on prize quantity
-            const nextBtn = document.getElementById('nextBtn');
-            const closeModalBtn = document.getElementById('closeModal');
-
-            if (prize.qty > 5) {
-                nextBtn.style.display = 'inline-block'; // Show Next Set button
-                closeModalBtn.style.display = 'none'; // Hide Close button
-            } else {
-                nextBtn.style.display = 'none'; // Hide Next Set button
-                closeModalBtn.style.display = 'inline-block'; // Show Close button
-            }
-
-            // Launch celebration
-            launchCelebration();
-        }
-    }, 100);
-}
-
-// Launch fireworks animation
-function launchFireworks() {
-    const celebrate = () => {
-        confetti({
-            particleCount: 100,
-            spread: 70,
-            origin: { y: 0.6 },
-            colors: ['#667eea', '#764ba2', '#f093fb', '#f5576c', '#4facfe', '#00f2fe']
-        });
-    };
-    
-    celebrate();
-    setTimeout(celebrate, 300);
-    setTimeout(celebrate, 600);
-    
-    // Side cannons
+    // Stop spinner after 3 seconds and show results
     setTimeout(() => {
-        confetti({
-            particleCount: 50,
-            angle: 60,
-            spread: 55,
-            origin: { x: 0 }
-        });
-        confetti({
-            particleCount: 50,
-            angle: 120,
-            spread: 55,
-            origin: { x: 1 }
-        });
-    }, 200);
+        clearInterval(spinnerInterval);
+        
+        // Draw actual winners
+        const selectedParticipants = drawRandomWinners(eligible, count);
+        
+        // Create winner records with category information
+        const winnerRecords = selectedParticipants.map(participant => ({
+            participantName: participant,
+            prizeCategory: prize.prize,
+            prizeName: prize.prize,
+            quantity: prize.qty,
+            drawDate: new Date().toISOString(),
+            drawTimestamp: Date.now(),
+            setNumber: Math.ceil((prize.winners.length + 1) / 5),
+            totalSets: Math.ceil(prize.qty / 5),
+            prizeIndex: currentPrizeIndex
+        }));
+        
+        // Add winner records to the prize
+        prize.winners.push(...winnerRecords);
+        
+        // Add winner records to global winners list
+        allWinners.push(...winnerRecords);
+        
+        // Save to localStorage
+        localStorage.setItem('prizeList', JSON.stringify(prizeList));
+        localStorage.setItem('allWinners', JSON.stringify(allWinners));
+        
+        // Store current draw results
+        currentPrizeWinners = winnerRecords;
+        
+        // Calculate sets
+        const remainingAfterDraw = prize.qty - prize.winners.length;
+        totalSets = Math.ceil(prize.qty / 5);
+        currentSetIndex = Math.ceil(prize.winners.length / 5) - 1;
+        
+        // Hide spinner and show results
+        hideSpinner();
+        showWinnerModal(prize, winnerRecords, remainingAfterDraw > 0);
+        
+        // Update UI
+        renderPrizeButtons();
+        updateDrawStatus();
+        updateStatistics();
+        
+        // Launch celebration
+        launchCelebration();
+    }, 3000);
 }
-
-// Show odometer
-function showOdometer(prize) {
-    document.getElementById('odometerPrize').textContent = prize.prize;
-    document.getElementById('odometerModal').style.display = 'flex';
-}
-
-// Hide odometer
-function hideOdometer() {
-    document.getElementById('odometerModal').style.display = 'none';
-}
-
 
 // Show spinner
 function showSpinner(prize) {
