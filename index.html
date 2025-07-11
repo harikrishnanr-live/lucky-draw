@@ -13,6 +13,12 @@
       background-size: cover;
       background-position: center;
       background-attachment: fixed;
+      display: flex;
+      flex-direction: column;
+      justify-content: center; /* Center vertically */
+      align-items: center; /* Center horizontally */
+      min-height: 100vh; /* Ensure body takes full height */
+      margin: 0; /* Remove default margin */
     }
     
     .login-container {
@@ -20,6 +26,10 @@
       background: rgba(255, 255, 255, 0.95);
       border: 1px solid rgba(255, 255, 255, 0.2);
       box-shadow: 0 25px 50px rgba(0, 0, 0, 0.15);
+      width: 100%; /* Full width for responsiveness */
+      max-width: 400px; /* Set a max width for the login box */
+      padding: 2rem; /* Add padding for better spacing */
+      border-radius: 1rem; /* Rounded corners */
     }
     
     .input-group {
@@ -92,20 +102,45 @@
       0% { transform: rotate(0deg); }
       100% { transform: rotate(360deg); }
     }
+
+    /* Footer Styles */
+    .footer {
+      background-color: #5727a6;
+      padding: 20px;
+      text-align: center;
+      border-top: 1px solid rgba(0, 0, 0, 0.1);
+      position: relative; /* Change to relative */
+      bottom: 0; /* Align to the bottom */
+      left: 0; /* Align to the left */
+      right: 0; /* Align to the right */
+      width: 100%; /* Full width */
+      z-index: 10; /* Ensure it stays above other content */
+    }
+
+    .footer p {
+      margin: 0;
+      color: white;
+      font-size: 0.875rem;
+    }
+
+    .footer a {
+      color: #3b82f6;
+      text-decoration: none;
+    }
   </style>
 </head>
-<body class="flex items-center justify-center min-h-screen p-4">
+<body>
   
   <!-- Background overlay -->
   <div class="absolute inset-0 bg-gradient-to-br from-blue-900/20 to-indigo-900/20"></div>
   
-  <div class="relative z-10 w-full max-w-md">
+  <div class="relative z-10 w-full max-w-md mx-auto">
     <div class="login-container rounded-2xl p-8 fade-in">
       
       <!-- Header -->
       <div class="text-center mb-8">
         <div class="inline-flex items-center justify-center w-16 h-16 bg-gradient-to-br from-blue-600 to-indigo-600 rounded-full mb-4">
-          <i class="fas fa-gift text-white text-2xl"></i>
+          <img src="./logo.jpg" alt="Logo" class="w-full h-full object-cover rounded-full" />
         </div>
         <h1 class="text-2xl font-bold text-gray-800 mb-2">
           Admin Login
@@ -203,6 +238,11 @@
       
     </div>
   </div>
+
+  <!-- Footer Section -->
+  <!-- <footer class="footer">
+    <p>Designed and Developed by <strong>Susan</strong> (9847847135) and <strong>Harikrishnan</strong> (9061002008, <a href="mailto:harikrishnanrlive@gmail.com">harikrishnanrlive@gmail.com</a>) and Team</p>
+  </footer> -->
   
   <!-- Scripts -->
   <script>
@@ -312,9 +352,13 @@
         
         // Check credentials
         if (username === "admin" && password === "admin") {
-          // Store user session
+          // Store user session with expiration time
+          const loginTime = new Date().toISOString();
+          const expirationTime = new Date(Date.now() + 60 * 60 * 1000).toISOString(); // 1 hour from now
+          
           localStorage.setItem("user", username);
-          localStorage.setItem("loginTime", new Date().toISOString());
+          localStorage.setItem("loginTime", loginTime);
+          localStorage.setItem("expirationTime", expirationTime);
           
           // Success feedback
           loginBtnText.innerHTML = '<i class="fas fa-check mr-2"></i>Success!';
@@ -371,8 +415,20 @@
     });
     
     // Focus management
+    // Check if user is already logged in and session is valid
     document.addEventListener("DOMContentLoaded", () => {
-      usernameInput.focus();
+      const expirationTime = localStorage.getItem("expirationTime");
+      const currentTime = new Date().toISOString();
+      
+      if (localStorage.getItem("user") && expirationTime && new Date(currentTime) < new Date(expirationTime)) {
+        // Optional: redirect to dashboard if already logged in and session is valid
+        window.location.href = "upload-prize.html";
+      } else {
+        // Clear session if expired
+        localStorage.removeItem("user");
+        localStorage.removeItem("loginTime");
+        localStorage.removeItem("expirationTime");
+      }
     });
     
     // Check if user is already logged in

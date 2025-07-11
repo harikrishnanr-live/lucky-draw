@@ -178,6 +178,31 @@
       backdrop-filter: blur(10px);
       background: rgba(255, 255, 255, 0.95);
     }
+
+    /* Footer Styles */
+    .footer {
+      background-color: #5727a6;
+      padding: 20px;
+      text-align: center;
+      border-top: 1px solid rgba(0, 0, 0, 0.1);
+      position: relative; /* Change to relative */
+      bottom: 0; /* Align to the bottom */
+      left: 0; /* Align to the left */
+      right: 0; /* Align to the right */
+      width: 100%; /* Full width */
+      z-index: 10; /* Ensure it stays above other content */
+    }
+
+    .footer p {
+      margin: 0;
+      color: white;
+      font-size: 0.875rem;
+    }
+
+    .footer a {
+      color: #3b82f6;
+      text-decoration: none;
+    }
   </style>
 </head>
 <body class="bg-gray-900 bg-opacity-90 min-h-screen">
@@ -186,7 +211,9 @@
 <nav class="bg-gradient-to-r from-purple-800 to-indigo-800 text-white py-4 shadow-xl">
   <div class="max-w-7xl mx-auto flex justify-between items-center px-4">
     <a href="dashboard.html" class="text-xl font-bold flex items-center space-x-2">
-      <span>🎁</span>
+<div class="inline-flex items-center justify-center w-16 h-16 bg-gradient-to-br from-blue-600 to-indigo-600 rounded-full mb-4">
+  <img src="./logo.jpg" alt="Logo" class="w-full h-full object-cover rounded-full" /> <!-- Replace with your logo path -->
+</div>
       <span>Lucky Draw System</span>
     </a>
     
@@ -305,10 +332,25 @@
   </div>
 </div>
 
+<br>
+<!-- Footer Section -->
+<footer class="footer">
+  <p>Designed and Developed by <strong>Susan</strong> (9847847135) and <strong>Harikrishnan</strong> (9061002008, <a href="mailto:harikrishnanrlive@gmail.com">harikrishnanrlive@gmail.com</a>) and Team</p>
+</footer>
+
 <!-- Scripts -->
 <script src="https://cdn.sheetjs.com/xlsx-0.20.3/package/dist/xlsx.full.min.js"></script>
 <script>
   document.addEventListener("DOMContentLoaded", () => {
+    // Check if user is already logged in and session is valid
+    const expirationTime = localStorage.getItem("expirationTime");
+    const currentTime = new Date().toISOString();
+
+    if (localStorage.getItem("user") && expirationTime && new Date(currentTime) > new Date(expirationTime)) {
+        // Redirect to login if session has expired
+        window.location.href = "index.html"; // Change to your login page URL
+    }
+
     const dropzone = document.getElementById("dropzone");
     const fileInput = document.getElementById("excelInput");
     const logoutBtn = document.getElementById("navLogout");

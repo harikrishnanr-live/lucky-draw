@@ -31,6 +31,31 @@
         transform: scale(1);
       }
     }
+    
+    /* Footer Styles */
+    .footer {
+      background-color: #5727a6;
+      padding: 20px;
+      text-align: center;
+      border-top: 1px solid rgba(0, 0, 0, 0.1);
+      position: relative; /* Change to relative */
+      bottom: 0; /* Align to the bottom */
+      left: 0; /* Align to the left */
+      right: 0; /* Align to the right */
+      width: 100%; /* Full width */
+      z-index: 10; /* Ensure it stays above other content */
+    }
+
+    .footer p {
+      margin: 0;
+      color: white;
+      font-size: 0.875rem;
+    }
+
+    .footer a {
+      color: #3b82f6;
+      text-decoration: none;
+    }
   </style>
 </head>
 <body class="bg-cover bg-center min-h-screen relative" style="background-image: url('background.jpg');">
@@ -44,7 +69,9 @@
   <!-- 🔗 Navbar -->
   <nav class="bg-gradient-to-r from-purple-700 to-indigo-700 text-white py-4 shadow">
     <div class="max-w-7xl mx-auto flex justify-between items-center px-4">
-      <a href="dashboard.html" class="text-lg font-bold">🎁 Lucky Draw</a>
+      <a href="dashboard.html" class="text-lg font-bold"><div class="inline-flex items-center justify-center w-16 h-16 bg-gradient-to-br from-blue-600 to-indigo-600 rounded-full mb-4">
+  <img src="./logo.jpg" alt="Logo" class="w-full h-full object-cover rounded-full" /> <!-- Replace with your logo path -->
+</div></a>
       <div class="space-x-4 hidden md:flex">
         <a href="upload-prize.html" class="hover:text-gray-200">Upload Prize</a>
         <a href="upload-participants.html" class="hover:text-gray-200">Upload Participants</a>
@@ -70,9 +97,21 @@
 
 </div> <!-- End of main wrapper -->
 
+<br>
+<!-- Footer Section -->
+<footer class="footer">
+  <p>Designed and Developed by <strong>Susan</strong> (9847847135) and <strong>Harikrishnan</strong> (9061002008, <a href="mailto:harikrishnanrlive@gmail.com">harikrishnanrlive@gmail.com</a>) and Team</p>
+</footer>
+
 <!-- 📜 Scripts -->
 <script>
   $(document).ready(() => {
+    const expirationTime = localStorage.getItem("expirationTime");
+    const currentTime = new Date().toISOString();
+    if (localStorage.getItem("user") && expirationTime && new Date(currentTime) > new Date(expirationTime)) {
+        // Redirect to login if session has expired
+        window.location.href = "index.html"; // Change to your login page URL
+    }
     $("#navLogout").click(() => {
       localStorage.clear();
       window.location.href = "index.html";
