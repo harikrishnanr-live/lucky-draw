@@ -351,7 +351,7 @@
         await new Promise(resolve => setTimeout(resolve, 800));
         
         // Check credentials
-        if (username === "admin" && password === "admin") {
+        if (username === "admin" && password === "admin@123") {
           // Store user session with expiration time
           const loginTime = new Date().toISOString();
           const expirationTime = new Date(Date.now() + 60 * 60 * 1000).toISOString(); // 1 hour from now
