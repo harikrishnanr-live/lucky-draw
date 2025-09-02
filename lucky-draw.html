@@ -1,516 +1,417 @@
+
 <!DOCTYPE html>
 <html lang="en">
-  <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Prize Drawing System</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
     <style>
-      .modal-overlay {
-        position: fixed;
-        top: 0;
-        left: 0;
-        width: 100%;
-        height: 100%;
-        background: rgba(0, 0, 0, 0.8);
-        display: none;
-        justify-content: center;
-        align-items: center;
-        z-index: 1000;
-      }
-
-      .modal-content {
-        background: white;
-        border-radius: 20px;
-        padding: 40px;
-        max-width: 600px;
-        width: 90%;
-        max-height: 80vh;
-        overflow-y: auto;
-        box-shadow: 0 25px 50px rgba(0, 0, 0, 0.5);
-      }
-
-      .spinner-container {
-        width: 350px;
-        height: 350px;
-        position: relative;
-        border-radius: 50%;
-        background: linear-gradient(45deg, #ff6b6b, #4ecdc4, #45b7d1, #f39c12, #e74c3c, #9b59b6);
-        padding: 12px;
-        animation: spin 1.5s linear infinite;
-        box-shadow: 0 0 40px rgba(255, 107, 107, 0.5);
-      }
-
-      .spinner-inner {
-        width: 100%;
-        height: 100%;
-        background: white;
-        border-radius: 50%;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        position: relative;
-        overflow: hidden;
-      }
-
-      .spinner-codes {
-        position: absolute;
-        width: 100%;
-        height: 100%;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        font-size: 18px;
-        font-weight: bold;
-        color: #333;
-        text-align: center;
-        padding: 30px;
-        box-sizing: border-box;
-        line-height: 1.3;
-      }
-
-      @keyframes spin {
-        0% {
-          transform: rotate(0deg);
-        }
-        100% {
-          transform: rotate(360deg);
-        }
-      }
-
-      .prize-button {
-        transition: all 0.3s ease;
-        min-width: 200px;
-        min-height: 120px;
-        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-        border: none;
-        border-radius: 16px;
-        color: white;
-        font-weight: 600;
-        text-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
-        box-shadow: 0 8px 20px rgba(0, 0, 0, 0.15);
-        transform: translateY(0);
-      }
-
-      .prize-button:hover:not(:disabled) {
-        transform: translateY(-8px);
-        box-shadow: 0 15px 30px rgba(0, 0, 0, 0.25);
-      }
-
-      .prize-button:disabled {
-        opacity: 0.7;
-        cursor: not-allowed;
-        transform: translateY(0);
-      }
-
-      .prize-button.completed {
-        background: linear-gradient(135deg, #10b981, #059669);
-        position: relative;
-        overflow: hidden;
-      }
-
-      .prize-button.completed::before {
-        content: "✓";
-        position: absolute;
-        top: 10px;
-        right: 15px;
-        font-size: 24px;
-        color: rgba(255, 255, 255, 0.9);
-      }
-
-      .winner-card {
-        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-        color: white;
-        border-radius: 16px;
-        padding: 20px;
-        margin: 12px 0;
-        box-shadow: 0 8px 25px rgba(0, 0, 0, 0.15);
-        transform: translateY(20px);
-        opacity: 0;
-        animation: slideIn 0.6s ease forwards;
-        position: relative;
-        overflow: hidden;
-      }
-
-      .winner-card::before {
-        content: "";
-        position: absolute;
-        top: 0;
-        left: -100%;
-        width: 100%;
-        height: 100%;
-        background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.2), transparent);
-        transition: left 0.5s;
-      }
-
-      .winner-card:hover::before {
-        left: 100%;
-      }
-
-      .winner-card:nth-child(odd) {
-        background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
-      }
-
-      .winner-card:nth-child(even) {
-        background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
-      }
-
-      @keyframes slideIn {
-        to {
-          transform: translateY(0);
-          opacity: 1;
-        }
-      }
-
-      .action-btn {
-        background: linear-gradient(45deg, #667eea, #764ba2);
-        transition: all 0.3s ease;
-        border: none;
-        border-radius: 12px;
-        padding: 12px 24px;
-        color: white;
-        font-weight: 600;
-        box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
-      }
-
-      .action-btn:hover:not(:disabled) {
-        transform: translateY(-3px);
-        box-shadow: 0 8px 25px rgba(0, 0, 0, 0.3);
-      }
-
-      .action-btn:disabled {
-        opacity: 0.6;
-        cursor: not-allowed;
-        transform: none;
-      }
-
-      .close-btn {
-        background: linear-gradient(45deg, #ef4444, #dc2626);
-      }
-
-      .reset-btn {
-        background: linear-gradient(45deg, #f59e0b, #d97706);
-      }
-
-      .mobile-menu {
-        display: none;
-      }
-
-      .mobile-menu.active {
-        display: block;
-      }
-
-      @media (max-width: 768px) {
-        .desktop-menu {
-          display: none;
-        }
-
-        .prize-button {
-          min-height: 100px;
-          font-size: 14px;
+        .modal-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.8);
+            display: none;
+            justify-content: center;
+            align-items: center;
+            z-index: 1000;
         }
 
         .modal-content {
-          padding: 24px;
+            background: white;
+            border-radius: 20px;
+            padding: 40px;
+            max-width: 600px;
+            width: 90%;
+            max-height: 80vh;
+            overflow-y: auto;
+            box-shadow: 0 25px 50px rgba(0, 0, 0, 0.5);
         }
-      }
 
-      .stats-card {
-        background: rgba(255, 255, 255, 0.1);
-        backdrop-filter: blur(10px);
-        border: 1px solid rgba(255, 255, 255, 0.2);
-        border-radius: 16px;
-        padding: 24px;
-        color: white;
-        margin-bottom: 24px;
-      }
-
-      .progress-bar {
-        background: rgba(255, 255, 255, 0.2);
-        border-radius: 10px;
-        height: 8px;
-        overflow: hidden;
-        margin-top: 12px;
-      }
-
-      .progress-fill {
-        background: linear-gradient(90deg, #10b981, #059669);
-        height: 100%;
-        border-radius: 10px;
-        transition: width 0.3s ease;
-      }
-
-      .spinner-overlay {
-        position: fixed;
-        top: 0;
-        left: 0;
-        width: 100%;
-        height: 100%;
-        background: rgba(0, 0, 0, 0.9); /* Dark overlay for the modal */
-        display: none;
-        justify-content: center;
-        align-items: center;
-        z-index: 1001;
-      }
-
-      .odometer {
-        font-family: "Poppins", sans-serif; /* Use the same font as the modal */
-        font-size: 72px; /* Increased font size for better visibility */
-        color: #fff; /* White text for contrast */
-        background: linear-gradient(135deg, #10b981, #059669); /* Match modal colors */
-        padding: 20px;
-        border-radius: 20px; /* Rounded corners */
-        display: inline-block;
-        letter-spacing: 5px; /* Increased letter spacing */
-        box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5); /* Shadow effect */
-        transition: transform 0.5s ease-in-out, box-shadow 0.3s ease; /* Smooth transition */
-        position: relative; /* Position relative for pseudo-elements */
-      }
-
-      .odometer::before {
-        content: "";
-        position: absolute;
-        top: 0;
-        left: 0;
-        right: 0;
-        bottom: 0;
-        background: rgba(255, 255, 255, 0.1); /* Light overlay */
-        border-radius: 20px; /* Match the border radius */
-        animation: pulse 1.5s infinite; /* Pulse effect */
-        z-index: 0; /* Behind the text */
-      }
-
-      @keyframes pulse {
-        0% {
-          transform: scale(1);
-          opacity: 0.5;
+        .spinner-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.95);
+            display: none;
+            justify-content: center;
+            align-items: center;
+            z-index: 1001;
         }
-        50% {
-          transform: scale(1.05);
-          opacity: 0.7;
+
+        .spinner-container {
+            width: 350px;
+            height: 350px;
+            position: relative;
+            border-radius: 50%;
+            background: linear-gradient(45deg, #ff6b6b, #4ecdc4, #45b7d1, #f39c12, #e74c3c, #9b59b6);
+            padding: 12px;
+            animation: spin 1.5s linear infinite;
+            box-shadow: 0 0 40px rgba(255, 107, 107, 0.5);
         }
-        100% {
-          transform: scale(1);
-          opacity: 0.5;
+
+        .spinner-inner {
+            width: 100%;
+            height: 100%;
+            background: white;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            position: relative;
+            overflow: hidden;
         }
-      }
 
-      /* Footer Styles */
-      .footer {
-        background-color: #5727a6;
-        padding: 20px;
-        text-align: center;
-        border-top: 1px solid rgba(0, 0, 0, 0.1);
-        position: relative; /* Change to relative */
-        bottom: 0; /* Align to the bottom */
-        left: 0; /* Align to the left */
-        right: 0; /* Align to the right */
-        width: 100%; /* Full width */
-        z-index: 10; /* Ensure it stays above other content */
-      }
+        .spinner-codes {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 18px;
+            font-weight: bold;
+            color: #333;
+            text-align: center;
+            padding: 30px;
+            box-sizing: border-box;
+            line-height: 1.3;
+        }
 
-      .footer p {
-        margin: 0;
-        color: white;
-        font-size: 0.875rem;
-      }
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
 
-      .footer a {
-        color: #3b82f6;
-        text-decoration: none;
-      }
+        .prize-button {
+            transition: all 0.3s ease;
+            min-width: 200px;
+            min-height: 120px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            border: none;
+            border-radius: 16px;
+            color: white;
+            font-weight: 600;
+            text-shadow: 0 2px 4px rgba(0,0,0,0.2);
+            box-shadow: 0 8px 20px rgba(0,0,0,0.15);
+            transform: translateY(0);
+        }
+
+        .prize-button:hover:not(:disabled) {
+            transform: translateY(-8px);
+            box-shadow: 0 15px 30px rgba(0,0,0,0.25);
+        }
+
+        .prize-button:disabled {
+            opacity: 0.7;
+            cursor: not-allowed;
+            transform: translateY(0);
+        }
+
+        .prize-button.completed {
+            background: linear-gradient(135deg, #10b981, #059669);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .prize-button.completed::before {
+            content: '✓';
+            position: absolute;
+            top: 10px;
+            right: 15px;
+            font-size: 24px;
+            color: rgba(255,255,255,0.9);
+        }
+
+        .winner-card {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border-radius: 16px;
+            padding: 20px;
+            margin: 12px 0;
+            box-shadow: 0 8px 25px rgba(0, 0, 0, 0.15);
+            transform: translateY(20px);
+            opacity: 0;
+            animation: slideIn 0.6s ease forwards;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .winner-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255,255,255,0.2), transparent);
+            transition: left 0.5s;
+        }
+
+        .winner-card:hover::before {
+            left: 100%;
+        }
+
+        .winner-card:nth-child(odd) {
+            background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+        }
+
+        .winner-card:nth-child(even) {
+            background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
+        }
+
+        @keyframes slideIn {
+            to {
+                transform: translateY(0);
+                opacity: 1;
+            }
+        }
+
+        .action-btn {
+            background: linear-gradient(45deg, #667eea, #764ba2);
+            transition: all 0.3s ease;
+            border: none;
+            border-radius: 12px;
+            padding: 12px 24px;
+            color: white;
+            font-weight: 600;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.2);
+        }
+
+        .action-btn:hover:not(:disabled) {
+            transform: translateY(-3px);
+            box-shadow: 0 8px 25px rgba(0, 0, 0, 0.3);
+        }
+
+        .action-btn:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        .close-btn {
+            background: linear-gradient(45deg, #ef4444, #dc2626);
+        }
+
+        .reset-btn {
+            background: linear-gradient(45deg, #f59e0b, #d97706);
+        }
+
+        .mobile-menu {
+            display: none;
+        }
+
+        .mobile-menu.active {
+            display: block;
+        }
+
+        @media (max-width: 768px) {
+            .desktop-menu {
+                display: none;
+            }
+            
+            .prize-button {
+                min-height: 100px;
+                font-size: 14px;
+            }
+            
+            .modal-content {
+                padding: 24px;
+            }
+        }
+
+        .stats-card {
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            border-radius: 16px;
+            padding: 24px;
+            color: white;
+            margin-bottom: 24px;
+        }
+
+        .progress-bar {
+            background: rgba(255, 255, 255, 0.2);
+            border-radius: 10px;
+            height: 8px;
+            overflow: hidden;
+            margin-top: 12px;
+        }
+
+        .progress-fill {
+            background: linear-gradient(90deg, #10b981, #059669);
+            height: 100%;
+            border-radius: 10px;
+            transition: width 0.3s ease;
+        }
     </style>
-  </head>
-  <body class="bg-gradient-to-br from-purple-900 via-blue-900 to-indigo-900 min-h-screen">
+</head>
+<body class="bg-gradient-to-br from-purple-900 via-blue-900 to-indigo-900 min-h-screen">
     <!-- Navigation Menu -->
     <nav class="bg-gradient-to-r from-purple-800 to-indigo-800 text-white py-4 shadow-xl">
-      <div class="max-w-7xl mx-auto flex justify-between items-center px-4">
-        <a href="dashboard.html" class="text-xl font-bold flex items-center space-x-2">
-          <div class="inline-flex items-center justify-center w-16 h-16 bg-gradient-to-br from-blue-600 to-indigo-600 rounded-full mb-4">
-            <img src="./logo.jpeg" alt="Logo" class="w-full h-full object-cover rounded-full" />
-            <!-- Replace with your logo path -->
-          </div>
-          <span>Lucky Draw System</span>
-        </a>
+        <div class="max-w-7xl mx-auto flex justify-between items-center px-4">
+            <a href="dashboard.html" class="text-xl font-bold flex items-center space-x-2">
+                <span>🎁</span>
+                <span>Lucky Draw System</span>
+            </a>
+            
+            <!-- Desktop Menu -->
+            <div class="desktop-menu space-x-6 hidden md:flex">
+                <a href="upload-prize.html" class="hover:text-gray-200 transition-colors duration-200 flex items-center space-x-1">
+                    <span>📋</span>
+                    <span>Upload Prize</span>
+                </a>
+                <a href="upload-participants.html" class="hover:text-gray-200 transition-colors duration-200 flex items-center space-x-1">
+                    <span>👥</span>
+                    <span>Upload Participants</span>
+                </a>
+                <a href="lucky-draw.html" class="font-semibold text-white bg-white bg-opacity-20 px-4 py-2 rounded-lg flex items-center space-x-1">
+                    <span>🎲</span>
+                    <span>Lucky Draw</span>
+                </a>
+                <a href="winners.html" class="hover:text-gray-200 transition-colors duration-200 flex items-center space-x-1">
+                    <span>🏆</span>
+                    <span>Winners</span>
+                </a>
+                <button id="navLogout" class="px-4 py-2 bg-white text-indigo-700 rounded-lg hover:bg-indigo-100 text-sm transition-colors duration-200 font-semibold">
+                    Logout
+                </button>
+            </div>
 
-        <!-- Desktop Menu -->
-        <div class="desktop-menu space-x-6 hidden md:flex">
-          <a href="upload-prize.html" class="hover:text-gray-200 transition-colors duration-200 flex items-center space-x-1">
-            <span>📋</span>
-            <span>Upload Prize</span>
-          </a>
-          <a href="upload-participants.html" class="hover:text-gray-200 transition-colors duration-200 flex items-center space-x-1">
-            <span>👥</span>
-            <span>Upload Participants</span>
-          </a>
-          <a href="lucky-draw.html" class="font-semibold text-white bg-white bg-opacity-20 px-4 py-2 rounded-lg flex items-center space-x-1">
-            <span>🎲</span>
-            <span>Lucky Draw</span>
-          </a>
-          <a href="winners.html" class="hover:text-gray-200 transition-colors duration-200 flex items-center space-x-1">
-            <span>🏆</span>
-            <span>Winners</span>
-          </a>
-          <button id="navLogout" class="px-4 py-2 bg-white text-indigo-700 rounded-lg hover:bg-indigo-100 text-sm transition-colors duration-200 font-semibold">
-            Logout
-          </button>
+            <!-- Mobile Menu Button -->
+            <button id="mobileMenuBtn" class="md:hidden focus:outline-none">
+                <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"></path>
+                </svg>
+            </button>
         </div>
 
-        <!-- Mobile Menu Button -->
-        <button id="mobileMenuBtn" class="md:hidden focus:outline-none">
-          <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"></path>
-          </svg>
-        </button>
-      </div>
-
-      <!-- Mobile Menu -->
-      <div id="mobileMenu" class="mobile-menu md:hidden bg-purple-900 bg-opacity-90 px-4 pb-4">
-        <div class="flex flex-col space-y-3 mt-4">
-          <a href="upload-prize.html" class="hover:text-gray-200 py-2 transition-colors duration-200">📋 Upload Prize</a>
-          <a href="upload-participants.html" class="hover:text-gray-200 py-2 transition-colors duration-200">👥 Upload Participants</a>
-          <a href="lucky-draw.html" class="font-semibold text-white bg-white bg-opacity-20 px-3 py-2 rounded-lg">🎲 Lucky Draw</a>
-          <a href="winners.html" class="hover:text-gray-200 py-2 transition-colors duration-200">🏆 Winners</a>
-          <button id="mobileLogout" class="px-3 py-2 bg-white text-indigo-700 rounded-lg hover:bg-indigo-100 text-sm transition-colors duration-200 text-left font-semibold">
-            Logout
-          </button>
+        <!-- Mobile Menu -->
+        <div id="mobileMenu" class="mobile-menu md:hidden bg-purple-900 bg-opacity-90 px-4 pb-4">
+            <div class="flex flex-col space-y-3 mt-4">
+                <a href="upload-prize.html" class="hover:text-gray-200 py-2 transition-colors duration-200">📋 Upload Prize</a>
+                <a href="upload-participants.html" class="hover:text-gray-200 py-2 transition-colors duration-200">👥 Upload Participants</a>
+                <a href="lucky-draw.html" class="font-semibold text-white bg-white bg-opacity-20 px-3 py-2 rounded-lg">🎲 Lucky Draw</a>
+                <a href="winners.html" class="hover:text-gray-200 py-2 transition-colors duration-200">🏆 Winners</a>
+                <button id="mobileLogout" class="px-3 py-2 bg-white text-indigo-700 rounded-lg hover:bg-indigo-100 text-sm transition-colors duration-200 text-left font-semibold">
+                    Logout
+                </button>
+            </div>
         </div>
-      </div>
     </nav>
 
     <div class="container mx-auto px-4 py-8">
-      <!-- Header -->
-      <div class="text-center mb-12">
-        <h1 class="text-5xl font-bold text-white mb-4">🎁 Prize Drawing System</h1>
-        <p class="text-xl text-gray-300">Select a prize to start the lucky draw</p>
-      </div>
-
-      <!-- Statistics Card -->
-      <div class="max-w-4xl mx-auto mb-8">
-        <div class="stats-card">
-          <div class="flex justify-between items-center mb-4">
-            <h3 class="text-xl font-semibold">Draw Progress</h3>
-            <span id="progressText" class="text-sm opacity-80">0/0 prizes completed</span>
-          </div>
-          <div class="progress-bar">
-            <div id="progressFill" class="progress-fill" style="width: 0%;"></div>
-          </div>
-          <div class="flex justify-between mt-4 text-sm opacity-80">
-            <span id="participantsCount">0 participants</span>
-            <span id="winnersCount">0 winners selected</span>
-          </div>
+        <!-- Header -->
+        <div class="text-center mb-12">
+            <h1 class="text-5xl font-bold text-white mb-4">🎁 Prize Drawing System</h1>
+            <p class="text-xl text-gray-300">Select a prize to start the lucky draw</p>
         </div>
-      </div>
 
-      <!-- Prize Grid -->
-      <div class="grid gap-6 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 mb-12" id="prizeGrid">
-        <!-- Prize buttons will be generated here -->
-      </div>
+        <!-- Statistics Card -->
+        <div class="max-w-4xl mx-auto mb-8">
+            <div class="stats-card">
+                <div class="flex justify-between items-center mb-4">
+                    <h3 class="text-xl font-semibold">Draw Progress</h3>
+                    <span id="progressText" class="text-sm opacity-80">0/0 prizes completed</span>
+                </div>
+                <div class="progress-bar">
+                    <div id="progressFill" class="progress-fill" style="width: 0%"></div>
+                </div>
+                <div class="flex justify-between mt-4 text-sm opacity-80">
+                    <span id="participantsCount">0 participants</span>
+                    <span id="winnersCount">0 winners selected</span>
+                </div>
+            </div>
+        </div>
 
-      <!-- Control Panel -->
-      <div class="text-center">
-        <div id="drawStatus" class="text-white text-lg mb-6"></div>
-        <button id="resetBtn" class="reset-btn action-btn font-semibold">
-          🔄 Reset All Draws
-        </button>
-      </div>
-    </div>
+        <!-- Prize Grid -->
+        <div class="grid gap-6 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 mb-12" id="prizeGrid">
+            <!-- Prize buttons will be generated here -->
+        </div>
 
-    <!-- Odometer Modal -->
-    <!-- Odometer Modal -->
-    <div id="odometerModal" class="spinner-overlay">
-      <div class="text-center">
-        <div class="odometer" id="odometer">000000</div>
-        <div class="text-white text-2xl mt-6 font-bold" id="odometerPrize">Prize Name</div>
-        <div class="text-gray-300 mt-2 text-lg">🎲 Drawing winners...</div>
-      </div>
+        <!-- Control Panel -->
+        <div class="text-center">
+            <div id="drawStatus" class="text-white text-lg mb-6"></div>
+            <button id="resetBtn" class="reset-btn action-btn font-semibold">
+                🔄 Reset All Draws
+            </button>
+        </div>
     </div>
 
     <!-- Spinner Modal -->
     <div id="spinnerModal" class="spinner-overlay">
-      <div class="text-center">
-        <div class="spinner-container">
-          <div class="spinner-inner">
-            <div class="spinner-codes" id="spinningCodes">
-              Preparing draw...
+        <div class="text-center">
+            <div class="spinner-container">
+                <div class="spinner-inner">
+                    <div class="spinner-codes" id="spinningCodes">
+                        Preparing draw...
+                    </div>
+                </div>
             </div>
-          </div>
+            <div class="text-white text-2xl mt-6 font-bold" id="spinnerPrize">Prize Name</div>
+            <div class="text-gray-300 mt-2 text-lg">🎲 Drawing winners...</div>
         </div>
-        <div class="text-white text-2xl mt-6 font-bold" id="spinnerPrize">Prize Name</div>
-        <div class="text-gray-300 mt-2 text-lg">🎲 Drawing winners...</div>
-      </div>
     </div>
 
     <!-- Winner Modal -->
     <div id="winnerModal" class="modal-overlay">
-      <div class="modal-content">
-        <div class="text-center mb-8">
-          <h2 class="text-3xl font-bold text-gray-800 mb-2" id="modalTitle">🏆 Winners</h2>
-          <div class="text-gray-600 text-lg" id="winnerCount">Set 1 of 2</div>
+        <div class="modal-content">
+            <div class="text-center mb-8">
+                <h2 class="text-3xl font-bold text-gray-800 mb-2" id="modalTitle">🏆 Winners</h2>
+                <div class="text-gray-600 text-lg" id="winnerCount">Set 1 of 2</div>
+            </div>
+            
+            <div id="winnersContainer" class="space-y-3 mb-8 max-h-80 overflow-y-auto">
+                <!-- Winner cards will be populated here -->
+            </div>
+            
+            <div class="flex justify-center space-x-4">
+                <button id="nextBtn" class="action-btn font-semibold" style="display: none;">
+                    ➡️ Next Set
+                </button>
+                <button id="closeModal" class="close-btn action-btn font-semibold" style="display: none;">
+                    ✅ Close
+                </button>
+            </div>
         </div>
-
-        <div id="winnersContainer" class="space-y-3 mb-8 max-h-80 overflow-y-auto">
-          <!-- Winner cards will be populated here -->
-        </div>
-
-        <div class="flex justify-center space-x-4">
-          <button id="nextBtn" class="action-btn font-semibold" style="display: none;">
-            ➡️ Next Set
-          </button>
-          <button id="closeModal" class="close-btn action-btn font-semibold" style="display: none;">
-            ✅ Close
-          </button>
-        </div>
-      </div>
     </div>
 
-    <br />
-    <!-- Footer Section -->
-    <footer class="footer">
-      <p>Designed and Developed by <strong>Susan</strong> (9847847135) and <strong>Harikrishnan</strong> (9061002008, <a href="mailto:harikrishnanrlive@gmail.com">harikrishnanrlive@gmail.com</a>) and Team</p>
-    </footer>
-
     <script>
-      document.addEventListener("DOMContentLoaded", () => {
-        // Check if user is already logged in and session is valid
-        const expirationTime = localStorage.getItem("expirationTime");
-        const currentTime = new Date().toISOString();
+       // Load data from localStorage
+let prizeList = JSON.parse(localStorage.getItem('prizeList')) || [];
+let participants = JSON.parse(localStorage.getItem('participants')) || [];
+let allWinners = JSON.parse(localStorage.getItem('allWinners')) || [];
 
-        if (localStorage.getItem("user") && expirationTime && new Date(currentTime) > new Date(expirationTime)) {
-          // Redirect to login if session has expired
-          window.location.href = "index.html"; // Change to your login page URL
-        }
-      });
-        // Load data from localStorage
-        let prizeList = JSON.parse(localStorage.getItem("prizeList")) || [];
-        let participants = JSON.parse(localStorage.getItem("participants")) || [];
-        let allWinners = JSON.parse(localStorage.getItem("allWinners")) || [];
+// State management
+let currentPrizeIndex = -1;
+let currentPrizeWinners = [];
+let currentSetIndex = 0;
+let totalSets = 0;
 
-        // State management
-        let currentPrizeIndex = -1;
-        let currentPrizeWinners = [];
-        let currentSetIndex = 0;
-        let totalSets = 0;
+// Initialize the application
+function init() {
+    if (prizeList.length === 0 || participants.length === 0) {
+        showEmptyState();
+        return;
+    }
+    
+    renderPrizeButtons();
+    updateDrawStatus();
+    updateStatistics();
+    setupEventListeners();
+    setupNavigation();
+}
 
-        // Initialize the application
-        function init() {
-          if (prizeList.length === 0 || participants.length === 0) {
-            showEmptyState();
-            return;
-          }
-
-          renderPrizeButtons();
-          updateDrawStatus();
-          updateStatistics();
-          setupEventListeners();
-          setupNavigation();
-        }
-
-        // Show empty state when no data
-        function showEmptyState() {
-          const grid = document.getElementById("prizeGrid");
-          grid.innerHTML = `
+// Show empty state when no data
+function showEmptyState() {
+    const grid = document.getElementById('prizeGrid');
+    grid.innerHTML = `
         <div class="col-span-full text-center py-16">
             <div class="text-6xl mb-4">📋</div>
             <h3 class="text-2xl font-semibold text-white mb-4">No Data Found</h3>
@@ -521,319 +422,243 @@
             </div>
         </div>
     `;
+}
+
+// Setup navigation event listeners
+function setupNavigation() {
+    const mobileMenuBtn = document.getElementById('mobileMenuBtn');
+    const mobileMenu = document.getElementById('mobileMenu');
+    
+    mobileMenuBtn.addEventListener('click', () => {
+        mobileMenu.classList.toggle('active');
+    });
+
+    // Logout functionality
+    document.getElementById('navLogout').addEventListener('click', logout);
+    document.getElementById('mobileLogout').addEventListener('click', logout);
+
+    function logout() {
+        if (confirm('Are you sure you want to logout? This will clear all data.')) {
+            localStorage.clear();
+            sessionStorage.clear();
+            window.location.href = 'index.html';
         }
+    }
 
-        // Setup navigation event listeners
-        function setupNavigation() {
-          const mobileMenuBtn = document.getElementById("mobileMenuBtn");
-          const mobileMenu = document.getElementById("mobileMenu");
-
-          mobileMenuBtn.addEventListener("click", () => {
-            mobileMenu.classList.toggle("active");
-          });
-
-          // Logout functionality
-          document.getElementById("navLogout").addEventListener("click", logout);
-          document.getElementById("mobileLogout").addEventListener("click", logout);
-
-          function logout() {
-            if (confirm("Are you sure you want to logout? This will clear all data.")) {
-              localStorage.clear();
-              sessionStorage.clear();
-              window.location.href = "index.html";
-            }
-          }
-
-          // Close mobile menu when clicking outside
-          document.addEventListener("click", (e) => {
-            if (!mobileMenuBtn.contains(e.target) && !mobileMenu.contains(e.target)) {
-              mobileMenu.classList.remove("active");
-            }
-          });
+    // Close mobile menu when clicking outside
+    document.addEventListener('click', (e) => {
+        if (!mobileMenuBtn.contains(e.target) && !mobileMenu.contains(e.target)) {
+            mobileMenu.classList.remove('active');
         }
+    });
+}
 
-        // Update statistics display
-        function updateStatistics() {
-          const completed = prizeList.filter((p) => p.winners && p.winners.length === p.qty).length;
-          const total = prizeList.length;
-          const totalWinners = allWinners.length;
+// Update statistics display
+function updateStatistics() {
+    const completed = prizeList.filter(p => p.winners && p.winners.length === p.qty).length;
+    const total = prizeList.length;
+    const totalWinners = allWinners.length;
+    
+    document.getElementById('progressText').textContent = `${completed}/${total} prizes completed`;
+    document.getElementById('progressFill').style.width = `${(completed / total) * 100}%`;
+    document.getElementById('participantsCount').textContent = `${participants.length} participants`;
+    document.getElementById('winnersCount').textContent = `${totalWinners} winners selected`;
+}
 
-          document.getElementById("progressText").textContent = `${completed}/${total} prizes completed`;
-          document.getElementById("progressFill").style.width = `${(completed / total) * 100}%`;
-          document.getElementById("participantsCount").textContent = `${participants.length} participants`;
-          document.getElementById("winnersCount").textContent = `${totalWinners} winners selected`;
-        }
+// Render prize buttons
+function renderPrizeButtons() {
+    const grid = document.getElementById('prizeGrid');
+    grid.innerHTML = '';
 
-        // Render prize buttons
-        function renderPrizeButtons() {
-          const grid = document.getElementById("prizeGrid");
-          grid.innerHTML = "";
+    prizeList.forEach((prize, index) => {
+        if (!prize.winners) prize.winners = [];
+        
+        const isCompleted = prize.winners.length === prize.qty;
+        const buttonClass = isCompleted ? 'prize-button completed' : 'prize-button';
 
-          prizeList.forEach((prize, index) => {
-            if (!prize.winners) prize.winners = [];
-
-            const isCompleted = prize.winners.length === prize.qty;
-            const buttonClass = isCompleted ? "prize-button completed" : "prize-button";
-
-            const button = document.createElement("button");
-            button.className = buttonClass;
-            button.innerHTML = `
+        const button = document.createElement('button');
+        button.className = buttonClass;
+        button.innerHTML = `
             <div class="text-xl font-bold mb-2">${prize.prize}</div>
             <div class="text-sm opacity-90 mb-2">Quantity: ${prize.qty}</div>
-            ${isCompleted ? '<div class="text-sm font-semibold">✅ Completed</div>' : prize.winners.length > 0 ? `<div class="text-sm">Progress: ${prize.winners.length}/${prize.qty}</div>` : '<div class="text-sm">🎲 Ready to draw</div>'}
+            ${isCompleted ? 
+                '<div class="text-sm font-semibold">✅ Completed</div>' : 
+                prize.winners.length > 0 ? 
+                    `<div class="text-sm">Progress: ${prize.winners.length}/${prize.qty}</div>` :
+                    '<div class="text-sm">🎲 Ready to draw</div>'
+            }
         `;
-            button.onclick = () => startPrizeDraw(index);
-            button.disabled = isCompleted;
+        button.onclick = () => startPrizeDraw(index);
+        button.disabled = isCompleted;
+        
+        grid.appendChild(button);
+    });
+}
 
-            grid.appendChild(button);
-          });
-        }
+// Update draw status
+function updateDrawStatus() {
+    const completed = prizeList.filter(p => p.winners && p.winners.length === p.qty).length;
+    const total = prizeList.length;
+    const status = document.getElementById('drawStatus');
+    
+    if (completed === total) {
+        status.innerHTML = `<div class="text-green-400 text-2xl">🎉 All prizes have been drawn! (${completed}/${total})</div>`;
+    } else {
+        status.innerHTML = `<div class="text-blue-400 text-lg">Progress: ${completed}/${total} prizes completed</div>`;
+    }
+}
 
-        // Update draw status
-        function updateDrawStatus() {
-          const completed = prizeList.filter((p) => p.winners && p.winners.length === p.qty).length;
-          const total = prizeList.length;
-          const status = document.getElementById("drawStatus");
+// Start prize drawing process
+function startPrizeDraw(prizeIndex) {
+    currentPrizeIndex = prizeIndex;
+    const prize = prizeList[prizeIndex];
+    
+    if (!prize.winners) prize.winners = [];
+    
+    if (prize.winners.length === prize.qty) {
+        alert('🎉 This prize has already been fully drawn!');
+        return;
+    }
 
-          if (completed === total) {
-            status.innerHTML = `<div class="text-green-400 text-2xl">🎉 All prizes have been drawn! (${completed}/${total})</div>`;
-          } else {
-            status.innerHTML = `<div class="text-blue-400 text-lg">Progress: ${completed}/${total} prizes completed</div>`;
-          }
-        }
+    // Calculate remaining winners needed
+    const remainingWinners = prize.qty - prize.winners.length;
+    
+    // For prizes > 5, divide into sets of 5
+    if (remainingWinners > 5) {
+        const winnersToDrawThisSet = Math.min(5, remainingWinners);
+        drawWinners(prize, winnersToDrawThisSet);
+    } else {
+        drawWinners(prize, remainingWinners);
+    }
+}
 
-        // Start prize drawing process
-        function startPrizeDraw(prizeIndex) {
-          currentPrizeIndex = prizeIndex;
-          const prize = prizeList[prizeIndex];
+// Get list of participant names who have already won (for eligibility check)
+function getWinnerNames() {
+    return allWinners.map(winner => winner.participantName);
+}
 
-          if (!prize.winners) prize.winners = [];
+// Draw winners for a prize
+function drawWinners(prize, count) {
+    // Show spinner
+    showSpinner(prize);
+    
+    // Get eligible participants (exclude all previous winners by name)
+    const winnerNames = getWinnerNames();
+    const eligible = participants.filter(p => !winnerNames.includes(p));
+    
+    if (eligible.length < count) {
+        alert(`❌ Not enough eligible participants! Need ${count}, but only ${eligible.length} available.`);
+        hideSpinner();
+        return;
+    }
 
-          if (prize.winners.length === prize.qty) {
-            // alert('🎉 This prize has already been fully drawn!');
-            return;
-          }
+    // Simulate spinner animation for 3 seconds
+    const spinnerInterval = setInterval(() => {
+        const randomCodes = getRandomCodes(eligible, Math.min(eligible.length, 8));
+        document.getElementById('spinningCodes').innerHTML = randomCodes.join('<br>');
+    }, 150);
 
-          // Calculate remaining winners needed
-          const remainingWinners = prize.qty - prize.winners.length;
+    // Stop spinner after 3 seconds and show results
+    setTimeout(() => {
+        clearInterval(spinnerInterval);
+        
+        // Draw actual winners
+        const selectedParticipants = drawRandomWinners(eligible, count);
+        
+        // Create winner records with category information
+        const winnerRecords = selectedParticipants.map(participant => ({
+            participantName: participant,
+            prizeCategory: prize.prize,
+            prizeName: prize.prize,
+            quantity: prize.qty,
+            drawDate: new Date().toISOString(),
+            drawTimestamp: Date.now(),
+            setNumber: Math.ceil((prize.winners.length + 1) / 5),
+            totalSets: Math.ceil(prize.qty / 5),
+            prizeIndex: currentPrizeIndex
+        }));
+        
+        // Add winner records to the prize
+        prize.winners.push(...winnerRecords);
+        
+        // Add winner records to global winners list
+        allWinners.push(...winnerRecords);
+        
+        // Save to localStorage
+        localStorage.setItem('prizeList', JSON.stringify(prizeList));
+        localStorage.setItem('allWinners', JSON.stringify(allWinners));
+        
+        // Store current draw results
+        currentPrizeWinners = winnerRecords;
+        
+        // Calculate sets
+        const remainingAfterDraw = prize.qty - prize.winners.length;
+        totalSets = Math.ceil(prize.qty / 5);
+        currentSetIndex = Math.ceil(prize.winners.length / 5) - 1;
+        
+        // Hide spinner and show results
+        hideSpinner();
+        showWinnerModal(prize, winnerRecords, remainingAfterDraw > 0);
+        
+        // Update UI
+        renderPrizeButtons();
+        updateDrawStatus();
+        updateStatistics();
+        
+        // Launch celebration
+        launchCelebration();
+    }, 3000);
+}
 
-          // Calculate total sets based on the prize quantity
-          totalSets = Math.ceil(prize.qty / 5); // Assuming 5 winners per set
+// Show spinner
+function showSpinner(prize) {
+    document.getElementById('spinnerPrize').textContent = prize.prize;
+    document.getElementById('spinnerModal').style.display = 'flex';
+}
 
-          // For prizes > 5, divide into sets of 5
-          if (remainingWinners > 5) {
-            const winnersToDrawThisSet = Math.min(5, remainingWinners);
-            drawWinners(prize, winnersToDrawThisSet);
-          } else {
-            drawWinners(prize, remainingWinners);
-          }
-        }
+// Hide spinner
+function hideSpinner() {
+    document.getElementById('spinnerModal').style.display = 'none';
+}
 
-        // Get list of participant names who have already won (for eligibility check)
-        function getWinnerNames() {
-          return allWinners.map((winner) => winner.participantName);
-        }
+// Show winner modal
+function showWinnerModal(prize, winnerRecords, hasMoreSets) {
+    document.getElementById('modalTitle').textContent = `🏆 ${prize.prize} Winners`;
+    
+    // Update set counter
+    const setNumber = currentSetIndex + 1;
+    document.getElementById('winnerCount').textContent = `Set ${setNumber} of ${totalSets}`;
+    
+    // Display winners
+    displayWinners(winnerRecords);
+    
+    // Show/hide buttons based on whether there are more sets
+    const nextBtn = document.getElementById('nextBtn');
+    const closeBtn = document.getElementById('closeModal');
+    
+    if (hasMoreSets) {
+        nextBtn.style.display = 'inline-block';
+        nextBtn.disabled = false;
+        closeBtn.style.display = 'none';
+    } else {
+        nextBtn.style.display = 'none';
+        closeBtn.style.display = 'inline-block';
+    }
+    
+    // Show modal
+    document.getElementById('winnerModal').style.display = 'flex';
+}
 
-        // Generate an array of coupon codes from 00001 to 12500
-        const couponCodes = Array.from({ length: 12500 }, (_, i) => (i + 1).toString().padStart(5, "0"));
-
-        // Function to shuffle the array
-        function shuffleArray(array) {
-          for (let i = array.length - 1; i > 0; i--) {
-            const j = Math.floor(Math.random() * (i + 1));
-            [array[i], array[j]] = [array[j], array[i]]; // Swap elements
-          }
-        }
-
-        // Shuffle the coupon codes
-        shuffleArray(couponCodes);
-        let currentCouponIndex = 0; // To keep track of the current coupon code being displayed
-
-        // Draw winners for a prize
-        function drawWinners(prize, count) {
-          // Show odometer
-          showOdometer(prize);
-
-          // Get eligible participants (exclude all previous winners by name)
-          const winnerNames = getWinnerNames();
-          const eligible = participants.filter((p) => !winnerNames.includes(p));
-
-          if (eligible.length < count) {
-            alert(`❌ Not enough eligible participants! Need ${count}, but only ${eligible.length} available.`);
-            hideOdometer();
-            return;
-          }
-
-          // Start odometer animation
-            setTimeout(() => {
-
-          const odometer = document.getElementById("odometer");
-          let startTime = Date.now();
-          let duration = 20000; // 20 seconds
-          let interval = setInterval(() => {
-            let elapsed = Date.now() - startTime;
-            let progress = Math.min(elapsed / duration, 1);
-
-            // Display the current coupon code
-            odometer.textContent = couponCodes[currentCouponIndex];
-
-            // Increment the coupon index for the next display
-            currentCouponIndex++;
-            if (currentCouponIndex >= couponCodes.length) {
-              currentCouponIndex = 0; // Reset to the beginning if we reach the end
-            }
-
-            if (progress === 1) {
-              clearInterval(interval);
-              // Draw actual winners
-              const selectedParticipants = drawRandomWinners(eligible, count);
-              // Create winner records with category information
-              const winnerRecords = selectedParticipants.map((participant) => ({
-                participantName: participant,
-                prizeCategory: prize.prize,
-                prizeName: prize.prize,
-                quantity: prize.qty,
-                drawDate: new Date().toISOString(),
-                drawTimestamp: Date.now(),
-                setNumber: Math.ceil((prize.winners.length + count) / 5), // Calculate current set number
-                totalSets: totalSets, // Use the updated totalSets
-                prizeIndex: currentPrizeIndex,
-              }));
-
-              // Add winner records to the prize
-              prize.winners.push(...winnerRecords);
-              // Add winner records to global winners list
-              allWinners.push(...winnerRecords);
-              // Save to localStorage
-              localStorage.setItem("prizeList", JSON.stringify(prizeList));
-              localStorage.setItem("allWinners", JSON.stringify(allWinners));
-              // Store current draw results
-              currentPrizeWinners = winnerRecords;
-              // Hide odometer and show results
-              hideOdometer();
-              showWinnerModal(prize, winnerRecords, true);
-
-              // Launch fireworks celebration
-              launchFireworks();
-
-              // Update UI
-              renderPrizeButtons();
-              updateDrawStatus();
-              updateStatistics();
-
-              // Show or hide buttons based on prize quantity
-              const nextBtn = document.getElementById("nextBtn");
-              const closeModalBtn = document.getElementById("closeModal");
-
-              if (prize.qty > 5) {
-                nextBtn.style.display = "inline-block"; // Show Next Set button
-                closeModalBtn.style.display = "none"; // Hide Close button
-              } else {
-                nextBtn.style.display = "none"; // Hide Next Set button
-                closeModalBtn.style.display = "inline-block"; // Show Close button
-              }
-
-              // Launch celebration
-              launchCelebration();
-            }
-          }, 100);
-            }, 500); // Wait for 1 second before starting the animation
-
-        }
-
-        // Launch fireworks animation
-        function launchFireworks() {
-          const celebrate = () => {
-            confetti({
-              particleCount: 100,
-              spread: 70,
-              origin: { y: 0.6 },
-              colors: ["#667eea", "#764ba2", "#f093fb", "#f5576c", "#4facfe", "#00f2fe"],
-            });
-          };
-
-          celebrate();
-          setTimeout(celebrate, 300);
-          setTimeout(celebrate, 600);
-
-          // Side cannons
-          setTimeout(() => {
-            confetti({
-              particleCount: 50,
-              angle: 60,
-              spread: 55,
-              origin: { x: 0 },
-            });
-            confetti({
-              particleCount: 50,
-              angle: 120,
-              spread: 55,
-              origin: { x: 1 },
-            });
-          }, 200);
-        }
-
-        // Show odometer
-        function showOdometer(prize) {
-          document.getElementById("odometer").textContent = "00000"; // Start from 0000
-          document.getElementById("odometerPrize").textContent = prize.prize;
-          document.getElementById("odometerModal").style.display = "flex";
-        }
-
-        // Hide odometer
-        function hideOdometer() {
-          document.getElementById("odometerModal").style.display = "none";
-        }
-
-        // Show spinner
-        function showSpinner(prize) {
-          document.getElementById("spinnerPrize").textContent = prize.prize;
-          document.getElementById("spinnerModal").style.display = "flex";
-        }
-
-        // Hide spinner
-        function hideSpinner() {
-          document.getElementById("spinnerModal").style.display = "none";
-        }
-
-        // Show winner modal
-        function showWinnerModal(prize, winnerRecords, hasMoreSets) {
-          document.getElementById("modalTitle").textContent = `🏆 ${prize.prize} Winners`;
-
-          // Update set counter
-          const setNumber = currentSetIndex + 1;
-          document.getElementById("winnerCount").textContent = `Set ${setNumber} of ${totalSets}`;
-
-          // Display winners
-          displayWinners(winnerRecords);
-
-          // Show/hide buttons based on whether there are more sets
-          const nextBtn = document.getElementById("nextBtn");
-          const closeBtn = document.getElementById("closeModal");
-
-          if (hasMoreSets) {
-            nextBtn.style.display = "inline-block";
-            nextBtn.disabled = false;
-            closeBtn.style.display = "none";
-          } else {
-            nextBtn.style.display = "none";
-            closeBtn.style.display = "inline-block";
-          }
-
-          // Show modal
-          document.getElementById("winnerModal").style.display = "flex";
-        }
-
-        // Display winners in the modal
-        function displayWinners(winnerRecords) {
-          const container = document.getElementById("winnersContainer");
-          container.innerHTML = "";
-
-          winnerRecords.forEach((winnerRecord, index) => {
-            const card = document.createElement("div");
-            card.className = "winner-card";
-            card.style.animationDelay = `${index * 0.1}s`;
-            card.innerHTML = `
+// Display winners in the modal
+function displayWinners(winnerRecords) {
+    const container = document.getElementById('winnersContainer');
+    container.innerHTML = '';
+    
+    winnerRecords.forEach((winnerRecord, index) => {
+        const card = document.createElement('div');
+        card.className = 'winner-card';
+        card.style.animationDelay = `${index * 0.1}s`;
+        card.innerHTML = `
             <div class="flex justify-between items-center">
                 <div class="font-bold text-xl">${winnerRecord.participantName}</div>
                 <div class="text-sm opacity-90 bg-white bg-opacity-20 px-3 py-1 rounded-full">
@@ -844,133 +669,133 @@
                 Prize: ${winnerRecord.prizeCategory} | Set: ${winnerRecord.setNumber}
             </div>
         `;
-            container.appendChild(card);
-          });
+        container.appendChild(card);
+    });
+}
+
+// Setup event listeners
+function setupEventListeners() {
+    // Next button
+    document.getElementById('nextBtn').addEventListener('click', () => {
+        document.getElementById('nextBtn').disabled = true;
+        document.getElementById('winnerModal').style.display = 'none';
+        
+        // Continue drawing for the same prize
+        setTimeout(() => {
+            startPrizeDraw(currentPrizeIndex);
+        }, 500);
+    });
+
+    // Close button
+    document.getElementById('closeModal').addEventListener('click', () => {
+        document.getElementById('winnerModal').style.display = 'none';
+    });
+
+    // Reset button
+    document.getElementById('resetBtn').addEventListener('click', () => {
+        if (confirm('⚠️ Are you sure you want to reset all draws? This will clear all winners and cannot be undone.')) {
+            resetAllDraws();
         }
+    });
+}
 
-        // Setup event listeners
-        function setupEventListeners() {
-          // Next button
-          document.getElementById("nextBtn").addEventListener("click", () => {
-            document.getElementById("nextBtn").disabled = true;
-            document.getElementById("winnerModal").style.display = "none";
+// Reset all draws
+function resetAllDraws() {
+    prizeList.forEach(prize => {
+        prize.winners = [];
+    });
+    allWinners = [];
+    localStorage.setItem('prizeList', JSON.stringify(prizeList));
+    localStorage.setItem('allWinners', JSON.stringify(allWinners));
+    renderPrizeButtons();
+    updateDrawStatus();
+    updateStatistics();
+    
+    // Show reset confirmation
+    const status = document.getElementById('drawStatus');
+    status.innerHTML = '<div class="text-yellow-400 text-lg">🔄 All draws have been reset successfully!</div>';
+    setTimeout(() => {
+        updateDrawStatus();
+    }, 3000);
+}
 
-            // Continue drawing for the same prize
-            setTimeout(() => {
-              startPrizeDraw(currentPrizeIndex);
-            }, 500);
-          });
+// Get random codes for spinner display
+function getRandomCodes(eligible, count) {
+    const shuffled = [...eligible].sort(() => 0.5 - Math.random());
+    return shuffled.slice(0, count);
+}
 
-          // Close button
-          document.getElementById("closeModal").addEventListener("click", () => {
-            document.getElementById("winnerModal").style.display = "none";
-          });
+// Draw random winners using Fisher-Yates shuffle
+function drawRandomWinners(eligible, count) {
+    const shuffled = [...eligible];
+    for (let i = shuffled.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        [shuffled[i], shuffled[j]] = [shuffled[j], shuffled[i]];
+    }
+    return shuffled.slice(0, count);
+}
 
-          // Reset button
-          document.getElementById("resetBtn").addEventListener("click", () => {
-            if (confirm("⚠️ Are you sure you want to reset all draws? This will clear all winners and cannot be undone.")) {
-              resetAllDraws();
-            }
-          });
-        }
+// Launch celebration animation
+function launchCelebration() {
+    // Multiple confetti bursts
+    const celebrate = () => {
+        confetti({
+            particleCount: 100,
+            spread: 70,
+            origin: { y: 0.6 },
+            colors: ['#667eea', '#764ba2', '#f093fb', '#f5576c', '#4facfe', '#00f2fe']
+        });
+    };
+    
+    celebrate();
+    setTimeout(celebrate, 300);
+    setTimeout(celebrate, 600);
+    
+    // Side cannons
+    setTimeout(() => {
+        confetti({
+            particleCount: 50,
+            angle: 60,
+            spread: 55,
+            origin: { x: 0 }
+        });
+        confetti({
+            particleCount: 50,
+            angle: 120,
+            spread: 55,
+            origin: { x: 1 }
+        });
+    }, 200);
+}
 
-        // Reset all draws
-        function resetAllDraws() {
-          prizeList.forEach((prize) => {
-            prize.winners = [];
-          });
-          allWinners = [];
-          localStorage.setItem("prizeList", JSON.stringify(prizeList));
-          localStorage.setItem("allWinners", JSON.stringify(allWinners));
-          renderPrizeButtons();
-          updateDrawStatus();
-          updateStatistics();
+// Initialize the application when DOM is loaded
+document.addEventListener('DOMContentLoaded', init);
 
-          // Show reset confirmation
-          const status = document.getElementById("drawStatus");
-          status.innerHTML = '<div class="text-yellow-400 text-lg">🔄 All draws have been reset successfully!</div>';
-          setTimeout(() => {
-            updateDrawStatus();
-          }, 3000);
-        }
+// Utility functions for winner data analysis
+function getWinnersByCategory(category) {
+    return allWinners.filter(winner => winner.prizeCategory === category);
+}
 
-        // Get random codes for spinner display
-        function getRandomCodes(eligible, count) {
-          const shuffled = [...eligible].sort(() => 0.5 - Math.random());
-          return shuffled.slice(0, count);
-        }
+function getWinnersByDate(date) {
+    const targetDate = new Date(date).toDateString();
+    return allWinners.filter(winner => {
+        const winnerDate = new Date(winner.drawDate).toDateString();
+        return winnerDate === targetDate;
+    });
+}
 
-        // Draw random winners using Fisher-Yates shuffle
-        function drawRandomWinners(eligible, count) {
-          const shuffled = [...eligible];
-          for (let i = shuffled.length - 1; i > 0; i--) {
-            const j = Math.floor(Math.random() * (i + 1));
-            [shuffled[i], shuffled[j]] = [shuffled[j], shuffled[i]];
-          }
-          return shuffled.slice(0, count);
-        }
+function getAllCategories() {
+    return [...new Set(allWinners.map(winner => winner.prizeCategory))];
+}
 
-        // Launch celebration animation
-        function launchCelebration() {
-          // Multiple confetti bursts
-          const celebrate = () => {
-            confetti({
-              particleCount: 100,
-              spread: 70,
-              origin: { y: 0.6 },
-              colors: ["#667eea", "#764ba2", "#f093fb", "#f5576c", "#4facfe", "#00f2fe"],
-            });
-          };
-
-          celebrate();
-          setTimeout(celebrate, 300);
-          setTimeout(celebrate, 600);
-
-          // Side cannons
-          setTimeout(() => {
-            confetti({
-              particleCount: 50,
-              angle: 60,
-              spread: 55,
-              origin: { x: 0 },
-            });
-            confetti({
-              particleCount: 50,
-              angle: 120,
-              spread: 55,
-              origin: { x: 1 },
-            });
-          }, 200);
-        }
-
-        // Initialize the application when DOM is loaded
-        document.addEventListener("DOMContentLoaded", init);
-
-        // Utility functions for winner data analysis
-        function getWinnersByCategory(category) {
-          return allWinners.filter((winner) => winner.prizeCategory === category);
-        }
-
-        function getWinnersByDate(date) {
-          const targetDate = new Date(date).toDateString();
-          return allWinners.filter((winner) => {
-            const winnerDate = new Date(winner.drawDate).toDateString();
-            return winnerDate === targetDate;
-          });
-        }
-
-        function getAllCategories() {
-          return [...new Set(allWinners.map((winner) => winner.prizeCategory))];
-        }
-
-        function getWinnerStatistics() {
-          const categories = getAllCategories();
-          return categories.map((category) => ({
-            category,
-            totalWinners: getWinnersByCategory(category).length,
-            winners: getWinnersByCategory(category),
-          }));
-        }
+function getWinnerStatistics() {
+    const categories = getAllCategories();
+    return categories.map(category => ({
+        category,
+        totalWinners: getWinnersByCategory(category).length,
+        winners: getWinnersByCategory(category)
+    }));
+}
     </script>
-  </body>
+</body>
 </html>
