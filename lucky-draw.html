@@ -1,10 +1,10 @@
-
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Prize Drawing System</title>
+    <title>Prize Drawing System - PBC 2026 Lucky Draw</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
     <style>
@@ -85,8 +85,13 @@
         }
 
         @keyframes spin {
-            0% { transform: rotate(0deg); }
-            100% { transform: rotate(360deg); }
+            0% {
+                transform: rotate(0deg);
+            }
+
+            100% {
+                transform: rotate(360deg);
+            }
         }
 
         .prize-button {
@@ -98,14 +103,14 @@
             border-radius: 16px;
             color: white;
             font-weight: 600;
-            text-shadow: 0 2px 4px rgba(0,0,0,0.2);
-            box-shadow: 0 8px 20px rgba(0,0,0,0.15);
+            text-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+            box-shadow: 0 8px 20px rgba(0, 0, 0, 0.15);
             transform: translateY(0);
         }
 
         .prize-button:hover:not(:disabled) {
             transform: translateY(-8px);
-            box-shadow: 0 15px 30px rgba(0,0,0,0.25);
+            box-shadow: 0 15px 30px rgba(0, 0, 0, 0.25);
         }
 
         .prize-button:disabled {
@@ -126,7 +131,7 @@
             top: 10px;
             right: 15px;
             font-size: 24px;
-            color: rgba(255,255,255,0.9);
+            color: rgba(255, 255, 255, 0.9);
         }
 
         .winner-card {
@@ -150,7 +155,7 @@
             left: -100%;
             width: 100%;
             height: 100%;
-            background: linear-gradient(90deg, transparent, rgba(255,255,255,0.2), transparent);
+            background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.2), transparent);
             transition: left 0.5s;
         }
 
@@ -181,7 +186,7 @@
             padding: 12px 24px;
             color: white;
             font-weight: 600;
-            box-shadow: 0 4px 15px rgba(0,0,0,0.2);
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
         }
 
         .action-btn:hover:not(:disabled) {
@@ -215,12 +220,12 @@
             .desktop-menu {
                 display: none;
             }
-            
+
             .prize-button {
                 min-height: 100px;
                 font-size: 14px;
             }
-            
+
             .modal-content {
                 padding: 24px;
             }
@@ -252,34 +257,44 @@
         }
     </style>
 </head>
+
 <body class="bg-gradient-to-br from-purple-900 via-blue-900 to-indigo-900 min-h-screen">
     <!-- Navigation Menu -->
     <nav class="bg-gradient-to-r from-purple-800 to-indigo-800 text-white py-4 shadow-xl">
         <div class="max-w-7xl mx-auto flex justify-between items-center px-4">
             <a href="dashboard.html" class="text-xl font-bold flex items-center space-x-2">
-                <span>🎁</span>
-                <span>UKBR 2025 Lucky Draw</span>
+                <div
+                    class="inline-flex items-center justify-center w-16 h-16 bg-gradient-to-br from-blue-600 to-indigo-600 rounded-full mb-4">
+                    <img src="./pbc_logo.jpeg" alt="Logo" class="w-full h-full object-cover rounded-full" />
+                    <!-- Replace with your logo path -->
+                </div>
+                <span>PBC 2026 Lucky Draw</span>
             </a>
-            
+
             <!-- Desktop Menu -->
             <div class="desktop-menu space-x-6 hidden md:flex">
-                <a href="upload-prize.html" class="hover:text-gray-200 transition-colors duration-200 flex items-center space-x-1">
+                <a href="upload-prize.html"
+                    class="hover:text-gray-200 transition-colors duration-200 flex items-center space-x-1">
                     <span>📋</span>
                     <span>Upload Prize</span>
                 </a>
-                <a href="upload-participants.html" class="hover:text-gray-200 transition-colors duration-200 flex items-center space-x-1">
+                <a href="upload-participants.html"
+                    class="hover:text-gray-200 transition-colors duration-200 flex items-center space-x-1">
                     <span>👥</span>
                     <span>Upload Participants</span>
                 </a>
-                <a href="lucky-draw.html" class="font-semibold text-white bg-white bg-opacity-20 px-4 py-2 rounded-lg flex items-center space-x-1">
+                <a href="lucky-draw.html"
+                    class="font-semibold text-white bg-white bg-opacity-20 px-4 py-2 rounded-lg flex items-center space-x-1">
                     <span>🎲</span>
                     <span>Lucky Draw</span>
                 </a>
-                <a href="winners.html" class="hover:text-gray-200 transition-colors duration-200 flex items-center space-x-1">
+                <a href="winners.html"
+                    class="hover:text-gray-200 transition-colors duration-200 flex items-center space-x-1">
                     <span>🏆</span>
                     <span>Winners</span>
                 </a>
-                <button id="navLogout" class="px-4 py-2 bg-white text-indigo-700 rounded-lg hover:bg-indigo-100 text-sm transition-colors duration-200 font-semibold">
+                <button id="navLogout"
+                    class="px-4 py-2 bg-white text-indigo-700 rounded-lg hover:bg-indigo-100 text-sm transition-colors duration-200 font-semibold">
                     Logout
                 </button>
             </div>
@@ -287,7 +302,8 @@
             <!-- Mobile Menu Button -->
             <button id="mobileMenuBtn" class="md:hidden focus:outline-none">
                 <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"></path>
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16">
+                    </path>
                 </svg>
             </button>
         </div>
@@ -295,11 +311,15 @@
         <!-- Mobile Menu -->
         <div id="mobileMenu" class="mobile-menu md:hidden bg-purple-900 bg-opacity-90 px-4 pb-4">
             <div class="flex flex-col space-y-3 mt-4">
-                <a href="upload-prize.html" class="hover:text-gray-200 py-2 transition-colors duration-200">📋 Upload Prize</a>
-                <a href="upload-participants.html" class="hover:text-gray-200 py-2 transition-colors duration-200">👥 Upload Participants</a>
-                <a href="lucky-draw.html" class="font-semibold text-white bg-white bg-opacity-20 px-3 py-2 rounded-lg">🎲 Lucky Draw</a>
+                <a href="upload-prize.html" class="hover:text-gray-200 py-2 transition-colors duration-200">📋 Upload
+                    Prize</a>
+                <a href="upload-participants.html" class="hover:text-gray-200 py-2 transition-colors duration-200">👥
+                    Upload Participants</a>
+                <a href="lucky-draw.html"
+                    class="font-semibold text-white bg-white bg-opacity-20 px-3 py-2 rounded-lg">🎲 Lucky Draw</a>
                 <a href="winners.html" class="hover:text-gray-200 py-2 transition-colors duration-200">🏆 Winners</a>
-                <button id="mobileLogout" class="px-3 py-2 bg-white text-indigo-700 rounded-lg hover:bg-indigo-100 text-sm transition-colors duration-200 text-left font-semibold">
+                <button id="mobileLogout"
+                    class="px-3 py-2 bg-white text-indigo-700 rounded-lg hover:bg-indigo-100 text-sm transition-colors duration-200 text-left font-semibold">
                     Logout
                 </button>
             </div>
@@ -366,11 +386,11 @@
                 <h2 class="text-3xl font-bold text-gray-800 mb-2" id="modalTitle">🏆 Winners</h2>
                 <div class="text-gray-600 text-lg" id="winnerCount">Set 1 of 2</div>
             </div>
-            
+
             <div id="winnersContainer" class="space-y-3 mb-8 max-h-80 overflow-y-auto">
                 <!-- Winner cards will be populated here -->
             </div>
-            
+
             <div class="flex justify-center space-x-4">
                 <button id="nextBtn" class="action-btn font-semibold" style="display: none;">
                     ➡️ Next Set
@@ -383,35 +403,35 @@
     </div>
 
     <script>
-       // Load data from localStorage
-let prizeList = JSON.parse(localStorage.getItem('prizeList')) || [];
-let participants = JSON.parse(localStorage.getItem('participants')) || [];
-let allWinners = JSON.parse(localStorage.getItem('allWinners')) || [];
+        // Load data from localStorage
+        let prizeList = JSON.parse(localStorage.getItem('prizeList')) || [];
+        let participants = JSON.parse(localStorage.getItem('participants')) || [];
+        let allWinners = JSON.parse(localStorage.getItem('allWinners')) || [];
 
-// State management
-let currentPrizeIndex = -1;
-let currentPrizeWinners = [];
-let currentSetIndex = 0;
-let totalSets = 0;
+        // State management
+        let currentPrizeIndex = -1;
+        let currentPrizeWinners = [];
+        let currentSetIndex = 0;
+        let totalSets = 0;
 
-// Initialize the application
-function init() {
-    if (prizeList.length === 0 || participants.length === 0) {
-        showEmptyState();
-        return;
-    }
-    
-    renderPrizeButtons();
-    updateDrawStatus();
-    updateStatistics();
-    setupEventListeners();
-    setupNavigation();
-}
+        // Initialize the application
+        function init() {
+            if (prizeList.length === 0 || participants.length === 0) {
+                showEmptyState();
+                return;
+            }
 
-// Show empty state when no data
-function showEmptyState() {
-    const grid = document.getElementById('prizeGrid');
-    grid.innerHTML = `
+            renderPrizeButtons();
+            updateDrawStatus();
+            updateStatistics();
+            setupEventListeners();
+            setupNavigation();
+        }
+
+        // Show empty state when no data
+        function showEmptyState() {
+            const grid = document.getElementById('prizeGrid');
+            grid.innerHTML = `
         <div class="col-span-full text-center py-16">
             <div class="text-6xl mb-4">📋</div>
             <h3 class="text-2xl font-semibold text-white mb-4">No Data Found</h3>
@@ -422,243 +442,243 @@ function showEmptyState() {
             </div>
         </div>
     `;
-}
-
-// Setup navigation event listeners
-function setupNavigation() {
-    const mobileMenuBtn = document.getElementById('mobileMenuBtn');
-    const mobileMenu = document.getElementById('mobileMenu');
-    
-    mobileMenuBtn.addEventListener('click', () => {
-        mobileMenu.classList.toggle('active');
-    });
-
-    // Logout functionality
-    document.getElementById('navLogout').addEventListener('click', logout);
-    document.getElementById('mobileLogout').addEventListener('click', logout);
-
-    function logout() {
-        if (confirm('Are you sure you want to logout? This will clear all data.')) {
-            localStorage.clear();
-            sessionStorage.clear();
-            window.location.href = 'index.html';
         }
-    }
 
-    // Close mobile menu when clicking outside
-    document.addEventListener('click', (e) => {
-        if (!mobileMenuBtn.contains(e.target) && !mobileMenu.contains(e.target)) {
-            mobileMenu.classList.remove('active');
+        // Setup navigation event listeners
+        function setupNavigation() {
+            const mobileMenuBtn = document.getElementById('mobileMenuBtn');
+            const mobileMenu = document.getElementById('mobileMenu');
+
+            mobileMenuBtn.addEventListener('click', () => {
+                mobileMenu.classList.toggle('active');
+            });
+
+            // Logout functionality
+            document.getElementById('navLogout').addEventListener('click', logout);
+            document.getElementById('mobileLogout').addEventListener('click', logout);
+
+            function logout() {
+                if (confirm('Are you sure you want to logout? This will clear all data.')) {
+                    localStorage.clear();
+                    sessionStorage.clear();
+                    window.location.href = 'index.html';
+                }
+            }
+
+            // Close mobile menu when clicking outside
+            document.addEventListener('click', (e) => {
+                if (!mobileMenuBtn.contains(e.target) && !mobileMenu.contains(e.target)) {
+                    mobileMenu.classList.remove('active');
+                }
+            });
         }
-    });
-}
 
-// Update statistics display
-function updateStatistics() {
-    const completed = prizeList.filter(p => p.winners && p.winners.length === p.qty).length;
-    const total = prizeList.length;
-    const totalWinners = allWinners.length;
-    
-    document.getElementById('progressText').textContent = `${completed}/${total} prizes completed`;
-    document.getElementById('progressFill').style.width = `${(completed / total) * 100}%`;
-    document.getElementById('participantsCount').textContent = `${participants.length} participants`;
-    document.getElementById('winnersCount').textContent = `${totalWinners} winners selected`;
-}
+        // Update statistics display
+        function updateStatistics() {
+            const completed = prizeList.filter(p => p.winners && p.winners.length === p.qty).length;
+            const total = prizeList.length;
+            const totalWinners = allWinners.length;
 
-// Render prize buttons
-function renderPrizeButtons() {
-    const grid = document.getElementById('prizeGrid');
-    grid.innerHTML = '';
+            document.getElementById('progressText').textContent = `${completed}/${total} prizes completed`;
+            document.getElementById('progressFill').style.width = `${(completed / total) * 100}%`;
+            document.getElementById('participantsCount').textContent = `${participants.length} participants`;
+            document.getElementById('winnersCount').textContent = `${totalWinners} winners selected`;
+        }
 
-    prizeList.forEach((prize, index) => {
-        if (!prize.winners) prize.winners = [];
-        
-        const isCompleted = prize.winners.length === prize.qty;
-        const buttonClass = isCompleted ? 'prize-button completed' : 'prize-button';
+        // Render prize buttons
+        function renderPrizeButtons() {
+            const grid = document.getElementById('prizeGrid');
+            grid.innerHTML = '';
 
-        const button = document.createElement('button');
-        button.className = buttonClass;
-        button.innerHTML = `
+            prizeList.forEach((prize, index) => {
+                if (!prize.winners) prize.winners = [];
+
+                const isCompleted = prize.winners.length === prize.qty;
+                const buttonClass = isCompleted ? 'prize-button completed' : 'prize-button';
+
+                const button = document.createElement('button');
+                button.className = buttonClass;
+                button.innerHTML = `
             <div class="text-xl font-bold mb-2">${prize.prize}</div>
             <div class="text-sm opacity-90 mb-2">Quantity: ${prize.qty}</div>
-            ${isCompleted ? 
-                '<div class="text-sm font-semibold">✅ Completed</div>' : 
-                prize.winners.length > 0 ? 
-                    `<div class="text-sm">Progress: ${prize.winners.length}/${prize.qty}</div>` :
-                    '<div class="text-sm">🎲 Ready to draw</div>'
-            }
+            ${isCompleted ?
+                        '<div class="text-sm font-semibold">✅ Completed</div>' :
+                        prize.winners.length > 0 ?
+                            `<div class="text-sm">Progress: ${prize.winners.length}/${prize.qty}</div>` :
+                            '<div class="text-sm">🎲 Ready to draw</div>'
+                    }
         `;
-        button.onclick = () => startPrizeDraw(index);
-        button.disabled = isCompleted;
-        
-        grid.appendChild(button);
-    });
-}
+                button.onclick = () => startPrizeDraw(index);
+                button.disabled = isCompleted;
 
-// Update draw status
-function updateDrawStatus() {
-    const completed = prizeList.filter(p => p.winners && p.winners.length === p.qty).length;
-    const total = prizeList.length;
-    const status = document.getElementById('drawStatus');
-    
-    if (completed === total) {
-        status.innerHTML = `<div class="text-green-400 text-2xl">🎉 All prizes have been drawn! (${completed}/${total})</div>`;
-    } else {
-        status.innerHTML = `<div class="text-blue-400 text-lg">Progress: ${completed}/${total} prizes completed</div>`;
-    }
-}
+                grid.appendChild(button);
+            });
+        }
 
-// Start prize drawing process
-function startPrizeDraw(prizeIndex) {
-    currentPrizeIndex = prizeIndex;
-    const prize = prizeList[prizeIndex];
-    
-    if (!prize.winners) prize.winners = [];
-    
-    if (prize.winners.length === prize.qty) {
-        alert('🎉 This prize has already been fully drawn!');
-        return;
-    }
+        // Update draw status
+        function updateDrawStatus() {
+            const completed = prizeList.filter(p => p.winners && p.winners.length === p.qty).length;
+            const total = prizeList.length;
+            const status = document.getElementById('drawStatus');
 
-    // Calculate remaining winners needed
-    const remainingWinners = prize.qty - prize.winners.length;
-    
-    // For prizes > 5, divide into sets of 5
-    if (remainingWinners > 5) {
-        const winnersToDrawThisSet = Math.min(5, remainingWinners);
-        drawWinners(prize, winnersToDrawThisSet);
-    } else {
-        drawWinners(prize, remainingWinners);
-    }
-}
+            if (completed === total) {
+                status.innerHTML = `<div class="text-green-400 text-2xl">🎉 All prizes have been drawn! (${completed}/${total})</div>`;
+            } else {
+                status.innerHTML = `<div class="text-blue-400 text-lg">Progress: ${completed}/${total} prizes completed</div>`;
+            }
+        }
 
-// Get list of participant names who have already won (for eligibility check)
-function getWinnerNames() {
-    return allWinners.map(winner => winner.participantName);
-}
+        // Start prize drawing process
+        function startPrizeDraw(prizeIndex) {
+            currentPrizeIndex = prizeIndex;
+            const prize = prizeList[prizeIndex];
 
-// Draw winners for a prize
-function drawWinners(prize, count) {
-    // Show spinner
-    showSpinner(prize);
-    
-    // Get eligible participants (exclude all previous winners by name)
-    const winnerNames = getWinnerNames();
-    const eligible = participants.filter(p => !winnerNames.includes(p));
-    
-    if (eligible.length < count) {
-        alert(`❌ Not enough eligible participants! Need ${count}, but only ${eligible.length} available.`);
-        hideSpinner();
-        return;
-    }
+            if (!prize.winners) prize.winners = [];
 
-    // Simulate spinner animation for 3 seconds
-    const spinnerInterval = setInterval(() => {
-        const randomCodes = getRandomCodes(eligible, Math.min(eligible.length, 8));
-        document.getElementById('spinningCodes').innerHTML = randomCodes.join('<br>');
-    }, 150);
+            if (prize.winners.length === prize.qty) {
+                alert('🎉 This prize has already been fully drawn!');
+                return;
+            }
 
-    // Stop spinner after 3 seconds and show results
-    setTimeout(() => {
-        clearInterval(spinnerInterval);
-        
-        // Draw actual winners
-        const selectedParticipants = drawRandomWinners(eligible, count);
-        
-        // Create winner records with category information
-        const winnerRecords = selectedParticipants.map(participant => ({
-            participantName: participant,
-            prizeCategory: prize.prize,
-            prizeName: prize.prize,
-            quantity: prize.qty,
-            drawDate: new Date().toISOString(),
-            drawTimestamp: Date.now(),
-            setNumber: Math.ceil((prize.winners.length + 1) / 5),
-            totalSets: Math.ceil(prize.qty / 5),
-            prizeIndex: currentPrizeIndex
-        }));
-        
-        // Add winner records to the prize
-        prize.winners.push(...winnerRecords);
-        
-        // Add winner records to global winners list
-        allWinners.push(...winnerRecords);
-        
-        // Save to localStorage
-        localStorage.setItem('prizeList', JSON.stringify(prizeList));
-        localStorage.setItem('allWinners', JSON.stringify(allWinners));
-        
-        // Store current draw results
-        currentPrizeWinners = winnerRecords;
-        
-        // Calculate sets
-        const remainingAfterDraw = prize.qty - prize.winners.length;
-        totalSets = Math.ceil(prize.qty / 5);
-        currentSetIndex = Math.ceil(prize.winners.length / 5) - 1;
-        
-        // Hide spinner and show results
-        hideSpinner();
-        showWinnerModal(prize, winnerRecords, remainingAfterDraw > 0);
-        
-        // Update UI
-        renderPrizeButtons();
-        updateDrawStatus();
-        updateStatistics();
-        
-        // Launch celebration
-        launchCelebration();
-    }, 3000);
-}
+            // Calculate remaining winners needed
+            const remainingWinners = prize.qty - prize.winners.length;
 
-// Show spinner
-function showSpinner(prize) {
-    document.getElementById('spinnerPrize').textContent = prize.prize;
-    document.getElementById('spinnerModal').style.display = 'flex';
-}
+            // For prizes > 5, divide into sets of 5
+            if (remainingWinners > 5) {
+                const winnersToDrawThisSet = Math.min(5, remainingWinners);
+                drawWinners(prize, winnersToDrawThisSet);
+            } else {
+                drawWinners(prize, remainingWinners);
+            }
+        }
 
-// Hide spinner
-function hideSpinner() {
-    document.getElementById('spinnerModal').style.display = 'none';
-}
+        // Get list of participant names who have already won (for eligibility check)
+        function getWinnerNames() {
+            return allWinners.map(winner => winner.participantName);
+        }
 
-// Show winner modal
-function showWinnerModal(prize, winnerRecords, hasMoreSets) {
-    document.getElementById('modalTitle').textContent = `🏆 ${prize.prize} Winners`;
-    
-    // Update set counter
-    const setNumber = currentSetIndex + 1;
-    document.getElementById('winnerCount').textContent = `Set ${setNumber} of ${totalSets}`;
-    
-    // Display winners
-    displayWinners(winnerRecords);
-    
-    // Show/hide buttons based on whether there are more sets
-    const nextBtn = document.getElementById('nextBtn');
-    const closeBtn = document.getElementById('closeModal');
-    
-    if (hasMoreSets) {
-        nextBtn.style.display = 'inline-block';
-        nextBtn.disabled = false;
-        closeBtn.style.display = 'none';
-    } else {
-        nextBtn.style.display = 'none';
-        closeBtn.style.display = 'inline-block';
-    }
-    
-    // Show modal
-    document.getElementById('winnerModal').style.display = 'flex';
-}
+        // Draw winners for a prize
+        function drawWinners(prize, count) {
+            // Show spinner
+            showSpinner(prize);
 
-// Display winners in the modal
-function displayWinners(winnerRecords) {
-    const container = document.getElementById('winnersContainer');
-    container.innerHTML = '';
-    
-    winnerRecords.forEach((winnerRecord, index) => {
-        const card = document.createElement('div');
-        card.className = 'winner-card';
-        card.style.animationDelay = `${index * 0.1}s`;
-        card.innerHTML = `
+            // Get eligible participants (exclude all previous winners by name)
+            const winnerNames = getWinnerNames();
+            const eligible = participants.filter(p => !winnerNames.includes(p));
+
+            if (eligible.length < count) {
+                alert(`❌ Not enough eligible participants! Need ${count}, but only ${eligible.length} available.`);
+                hideSpinner();
+                return;
+            }
+
+            // Simulate spinner animation for 3 seconds
+            const spinnerInterval = setInterval(() => {
+                const randomCodes = getRandomCodes(eligible, Math.min(eligible.length, 8));
+                document.getElementById('spinningCodes').innerHTML = randomCodes.join('<br>');
+            }, 150);
+
+            // Stop spinner after 3 seconds and show results
+            setTimeout(() => {
+                clearInterval(spinnerInterval);
+
+                // Draw actual winners
+                const selectedParticipants = drawRandomWinners(eligible, count);
+
+                // Create winner records with category information
+                const winnerRecords = selectedParticipants.map(participant => ({
+                    participantName: participant,
+                    prizeCategory: prize.prize,
+                    prizeName: prize.prize,
+                    quantity: prize.qty,
+                    drawDate: new Date().toISOString(),
+                    drawTimestamp: Date.now(),
+                    setNumber: Math.ceil((prize.winners.length + 1) / 5),
+                    totalSets: Math.ceil(prize.qty / 5),
+                    prizeIndex: currentPrizeIndex
+                }));
+
+                // Add winner records to the prize
+                prize.winners.push(...winnerRecords);
+
+                // Add winner records to global winners list
+                allWinners.push(...winnerRecords);
+
+                // Save to localStorage
+                localStorage.setItem('prizeList', JSON.stringify(prizeList));
+                localStorage.setItem('allWinners', JSON.stringify(allWinners));
+
+                // Store current draw results
+                currentPrizeWinners = winnerRecords;
+
+                // Calculate sets
+                const remainingAfterDraw = prize.qty - prize.winners.length;
+                totalSets = Math.ceil(prize.qty / 5);
+                currentSetIndex = Math.ceil(prize.winners.length / 5) - 1;
+
+                // Hide spinner and show results
+                hideSpinner();
+                showWinnerModal(prize, winnerRecords, remainingAfterDraw > 0);
+
+                // Update UI
+                renderPrizeButtons();
+                updateDrawStatus();
+                updateStatistics();
+
+                // Launch celebration
+                launchCelebration();
+            }, 3000);
+        }
+
+        // Show spinner
+        function showSpinner(prize) {
+            document.getElementById('spinnerPrize').textContent = prize.prize;
+            document.getElementById('spinnerModal').style.display = 'flex';
+        }
+
+        // Hide spinner
+        function hideSpinner() {
+            document.getElementById('spinnerModal').style.display = 'none';
+        }
+
+        // Show winner modal
+        function showWinnerModal(prize, winnerRecords, hasMoreSets) {
+            document.getElementById('modalTitle').textContent = `🏆 ${prize.prize} Winners`;
+
+            // Update set counter
+            const setNumber = currentSetIndex + 1;
+            document.getElementById('winnerCount').textContent = `Set ${setNumber} of ${totalSets}`;
+
+            // Display winners
+            displayWinners(winnerRecords);
+
+            // Show/hide buttons based on whether there are more sets
+            const nextBtn = document.getElementById('nextBtn');
+            const closeBtn = document.getElementById('closeModal');
+
+            if (hasMoreSets) {
+                nextBtn.style.display = 'inline-block';
+                nextBtn.disabled = false;
+                closeBtn.style.display = 'none';
+            } else {
+                nextBtn.style.display = 'none';
+                closeBtn.style.display = 'inline-block';
+            }
+
+            // Show modal
+            document.getElementById('winnerModal').style.display = 'flex';
+        }
+
+        // Display winners in the modal
+        function displayWinners(winnerRecords) {
+            const container = document.getElementById('winnersContainer');
+            container.innerHTML = '';
+
+            winnerRecords.forEach((winnerRecord, index) => {
+                const card = document.createElement('div');
+                card.className = 'winner-card';
+                card.style.animationDelay = `${index * 0.1}s`;
+                card.innerHTML = `
             <div class="flex justify-between items-center">
                 <div class="font-bold text-xl">${winnerRecord.participantName}</div>
                 <div class="text-sm opacity-90 bg-white bg-opacity-20 px-3 py-1 rounded-full">
@@ -669,133 +689,134 @@ function displayWinners(winnerRecords) {
                 Prize: ${winnerRecord.prizeCategory} | Set: ${winnerRecord.setNumber}
             </div>
         `;
-        container.appendChild(card);
-    });
-}
-
-// Setup event listeners
-function setupEventListeners() {
-    // Next button
-    document.getElementById('nextBtn').addEventListener('click', () => {
-        document.getElementById('nextBtn').disabled = true;
-        document.getElementById('winnerModal').style.display = 'none';
-        
-        // Continue drawing for the same prize
-        setTimeout(() => {
-            startPrizeDraw(currentPrizeIndex);
-        }, 500);
-    });
-
-    // Close button
-    document.getElementById('closeModal').addEventListener('click', () => {
-        document.getElementById('winnerModal').style.display = 'none';
-    });
-
-    // Reset button
-    document.getElementById('resetBtn').addEventListener('click', () => {
-        if (confirm('⚠️ Are you sure you want to reset all draws? This will clear all winners and cannot be undone.')) {
-            resetAllDraws();
+                container.appendChild(card);
+            });
         }
-    });
-}
 
-// Reset all draws
-function resetAllDraws() {
-    prizeList.forEach(prize => {
-        prize.winners = [];
-    });
-    allWinners = [];
-    localStorage.setItem('prizeList', JSON.stringify(prizeList));
-    localStorage.setItem('allWinners', JSON.stringify(allWinners));
-    renderPrizeButtons();
-    updateDrawStatus();
-    updateStatistics();
-    
-    // Show reset confirmation
-    const status = document.getElementById('drawStatus');
-    status.innerHTML = '<div class="text-yellow-400 text-lg">🔄 All draws have been reset successfully!</div>';
-    setTimeout(() => {
-        updateDrawStatus();
-    }, 3000);
-}
+        // Setup event listeners
+        function setupEventListeners() {
+            // Next button
+            document.getElementById('nextBtn').addEventListener('click', () => {
+                document.getElementById('nextBtn').disabled = true;
+                document.getElementById('winnerModal').style.display = 'none';
 
-// Get random codes for spinner display
-function getRandomCodes(eligible, count) {
-    const shuffled = [...eligible].sort(() => 0.5 - Math.random());
-    return shuffled.slice(0, count);
-}
+                // Continue drawing for the same prize
+                setTimeout(() => {
+                    startPrizeDraw(currentPrizeIndex);
+                }, 500);
+            });
 
-// Draw random winners using Fisher-Yates shuffle
-function drawRandomWinners(eligible, count) {
-    const shuffled = [...eligible];
-    for (let i = shuffled.length - 1; i > 0; i--) {
-        const j = Math.floor(Math.random() * (i + 1));
-        [shuffled[i], shuffled[j]] = [shuffled[j], shuffled[i]];
-    }
-    return shuffled.slice(0, count);
-}
+            // Close button
+            document.getElementById('closeModal').addEventListener('click', () => {
+                document.getElementById('winnerModal').style.display = 'none';
+            });
 
-// Launch celebration animation
-function launchCelebration() {
-    // Multiple confetti bursts
-    const celebrate = () => {
-        confetti({
-            particleCount: 100,
-            spread: 70,
-            origin: { y: 0.6 },
-            colors: ['#667eea', '#764ba2', '#f093fb', '#f5576c', '#4facfe', '#00f2fe']
-        });
-    };
-    
-    celebrate();
-    setTimeout(celebrate, 300);
-    setTimeout(celebrate, 600);
-    
-    // Side cannons
-    setTimeout(() => {
-        confetti({
-            particleCount: 50,
-            angle: 60,
-            spread: 55,
-            origin: { x: 0 }
-        });
-        confetti({
-            particleCount: 50,
-            angle: 120,
-            spread: 55,
-            origin: { x: 1 }
-        });
-    }, 200);
-}
+            // Reset button
+            document.getElementById('resetBtn').addEventListener('click', () => {
+                if (confirm('⚠️ Are you sure you want to reset all draws? This will clear all winners and cannot be undone.')) {
+                    resetAllDraws();
+                }
+            });
+        }
 
-// Initialize the application when DOM is loaded
-document.addEventListener('DOMContentLoaded', init);
+        // Reset all draws
+        function resetAllDraws() {
+            prizeList.forEach(prize => {
+                prize.winners = [];
+            });
+            allWinners = [];
+            localStorage.setItem('prizeList', JSON.stringify(prizeList));
+            localStorage.setItem('allWinners', JSON.stringify(allWinners));
+            renderPrizeButtons();
+            updateDrawStatus();
+            updateStatistics();
 
-// Utility functions for winner data analysis
-function getWinnersByCategory(category) {
-    return allWinners.filter(winner => winner.prizeCategory === category);
-}
+            // Show reset confirmation
+            const status = document.getElementById('drawStatus');
+            status.innerHTML = '<div class="text-yellow-400 text-lg">🔄 All draws have been reset successfully!</div>';
+            setTimeout(() => {
+                updateDrawStatus();
+            }, 3000);
+        }
 
-function getWinnersByDate(date) {
-    const targetDate = new Date(date).toDateString();
-    return allWinners.filter(winner => {
-        const winnerDate = new Date(winner.drawDate).toDateString();
-        return winnerDate === targetDate;
-    });
-}
+        // Get random codes for spinner display
+        function getRandomCodes(eligible, count) {
+            const shuffled = [...eligible].sort(() => 0.5 - Math.random());
+            return shuffled.slice(0, count);
+        }
 
-function getAllCategories() {
-    return [...new Set(allWinners.map(winner => winner.prizeCategory))];
-}
+        // Draw random winners using Fisher-Yates shuffle
+        function drawRandomWinners(eligible, count) {
+            const shuffled = [...eligible];
+            for (let i = shuffled.length - 1; i > 0; i--) {
+                const j = Math.floor(Math.random() * (i + 1));
+                [shuffled[i], shuffled[j]] = [shuffled[j], shuffled[i]];
+            }
+            return shuffled.slice(0, count);
+        }
 
-function getWinnerStatistics() {
-    const categories = getAllCategories();
-    return categories.map(category => ({
-        category,
-        totalWinners: getWinnersByCategory(category).length,
-        winners: getWinnersByCategory(category)
-    }));
-}
+        // Launch celebration animation
+        function launchCelebration() {
+            // Multiple confetti bursts
+            const celebrate = () => {
+                confetti({
+                    particleCount: 100,
+                    spread: 70,
+                    origin: { y: 0.6 },
+                    colors: ['#667eea', '#764ba2', '#f093fb', '#f5576c', '#4facfe', '#00f2fe']
+                });
+            };
+
+            celebrate();
+            setTimeout(celebrate, 300);
+            setTimeout(celebrate, 600);
+
+            // Side cannons
+            setTimeout(() => {
+                confetti({
+                    particleCount: 50,
+                    angle: 60,
+                    spread: 55,
+                    origin: { x: 0 }
+                });
+                confetti({
+                    particleCount: 50,
+                    angle: 120,
+                    spread: 55,
+                    origin: { x: 1 }
+                });
+            }, 200);
+        }
+
+        // Initialize the application when DOM is loaded
+        document.addEventListener('DOMContentLoaded', init);
+
+        // Utility functions for winner data analysis
+        function getWinnersByCategory(category) {
+            return allWinners.filter(winner => winner.prizeCategory === category);
+        }
+
+        function getWinnersByDate(date) {
+            const targetDate = new Date(date).toDateString();
+            return allWinners.filter(winner => {
+                const winnerDate = new Date(winner.drawDate).toDateString();
+                return winnerDate === targetDate;
+            });
+        }
+
+        function getAllCategories() {
+            return [...new Set(allWinners.map(winner => winner.prizeCategory))];
+        }
+
+        function getWinnerStatistics() {
+            const categories = getAllCategories();
+            return categories.map(category => ({
+                category,
+                totalWinners: getWinnersByCategory(category).length,
+                winners: getWinnersByCategory(category)
+            }));
+        }
     </script>
 </body>
+
 </html>
