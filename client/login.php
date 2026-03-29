@@ -1,29 +1,117 @@
+<?php
+/**
+ * Client Login Page
+ * Dynamic login page for each client based on username from URL
+ * Usage: http://localhost:8000/{username}
+ */
+
+// Check if database connection already exists (from router.php)
+if (!isset($conn) || !($conn instanceof mysqli)) {
+    require_once __DIR__ . '/../includes/db_connect.php';
+}
+
+// Start session to get error messages
+session_start();
+
+// Get username from URL path
+$request_uri = $_SERVER['REQUEST_URI'];
+$path = parse_url($request_uri, PHP_URL_PATH);
+$path = trim($path, '/');
+$username = $path;
+
+// Validate username exists in database
+$user = null;
+$logo_path = '/pbc_logo.jpeg'; // Default logo (absolute path from root)
+$common_title = 'Lucky Draw';
+$year = '2026';
+$background_image = '';
+
+if (!empty($username)) {
+    $stmt = $conn->prepare("SELECT id, username, logo, common_title, year, background_image, status FROM users WHERE username = ? AND status = 'active'");
+    $stmt->bind_param("s", $username);
+    $stmt->execute();
+    $result = $stmt->get_result();
+    
+    if ($result->num_rows > 0) {
+        $user = $result->fetch_assoc();
+        
+        // Set custom logo if exists (use absolute path from root)
+        if (!empty($user['logo'])) {
+            $logo_path = '/uploads/' . $user['logo'];
+        }
+        
+        // Set custom title if exists
+        if (!empty($user['common_title'])) {
+            $common_title = $user['common_title'];
+        }
+        
+        // Set custom year if exists
+        if (!empty($user['year'])) {
+            $year = $user['year'];
+        }
+        
+        // Set custom background if exists (use absolute path from root)
+        if (!empty($user['background_image'])) {
+            $background_image = '/uploads/' . $user['background_image'];
+        }
+    }
+    $stmt->close();
+}
+
+// If user not found, show error
+if (!$user) {
+    http_response_code(404);
+    echo "<!DOCTYPE html>
+    <html lang='en'>
+    <head>
+        <meta charset='UTF-8'>
+        <meta name='viewport' content='width=device-width, initial-scale=1.0'>
+        <title>404 - User Not Found</title>
+        <script src='https://cdn.tailwindcss.com'></script>
+    </head>
+    <body class='bg-gray-900 min-h-screen flex items-center justify-center'>
+        <div class='text-center'>
+            <h1 class='text-4xl font-bold text-white mb-4'>404</h1>
+            <p class='text-gray-300 mb-4'>User not found: " . htmlspecialchars($username) . "</p>
+            <a href='/' class='text-blue-400 hover:text-blue-300'>Go to Home</a>
+        </div>
+    </body>
+    </html>";
+    exit;
+}
+
+// Store username in session for later use
+$_SESSION['client_username'] = $username;
+$_SESSION['client_user_id'] = $user['id'];
+
+// Get error message from session if exists
+$error_message = isset($_SESSION['error']) ? $_SESSION['error'] : '';
+unset($_SESSION['error']); // Clear error message after reading
+?>
 <!DOCTYPE html>
 <html lang="en">
 
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>PBC 2026 Lucky Draw - Admin Login</title>
+  <title><?php echo htmlspecialchars($common_title . ' ' . $year); ?></title>
   <script src="https://cdn.tailwindcss.com"></script>
   <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
   <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
   <style>
     body {
-      /*background-image: linear-gradient(135deg, rgba(59, 130, 246, 0.1) 0%, rgba(99, 102, 241, 0.1) 100%), url('login.jpg');*/
+      <?php if (!empty($background_image)): ?>
+      background-image: url('<?php echo htmlspecialchars($background_image); ?>');
+      <?php endif; ?>
       background-size: cover;
       background-position: center;
       background-attachment: fixed;
       display: flex;
       flex-direction: column;
       justify-content: center;
-      /* Center vertically */
       align-items: center;
-      /* Center horizontally */
       min-height: 100vh;
-      /* Ensure body takes full height */
       margin: 0;
-      /* Remove default margin */
     }
 
     .login-container {
@@ -32,13 +120,9 @@
       border: 1px solid rgba(255, 255, 255, 0.2);
       box-shadow: 0 25px 50px rgba(0, 0, 0, 0.15);
       width: 100%;
-      /* Full width for responsiveness */
       max-width: 400px;
-      /* Set a max width for the login box */
       padding: 2rem;
-      /* Add padding for better spacing */
       border-radius: 1rem;
-      /* Rounded corners */
     }
 
     .input-group {
@@ -79,19 +163,9 @@
     }
 
     @keyframes shake {
-
-      0%,
-      100% {
-        transform: translateX(0);
-      }
-
-      25% {
-        transform: translateX(-5px);
-      }
-
-      75% {
-        transform: translateX(5px);
-      }
+      0%, 100% { transform: translateX(0); }
+      25% { transform: translateX(-5px); }
+      75% { transform: translateX(5px); }
     }
 
     .fade-in {
@@ -118,33 +192,21 @@
     }
 
     @keyframes spin {
-      0% {
-        transform: rotate(0deg);
-      }
-
-      100% {
-        transform: rotate(360deg);
-      }
+      0% { transform: rotate(0deg); }
+      100% { transform: rotate(360deg); }
     }
 
-    /* Footer Styles */
     .footer {
       background-color: #5727a6;
       padding: 20px;
       text-align: center;
       border-top: 1px solid rgba(0, 0, 0, 0.1);
       position: relative;
-      /* Change to relative */
       bottom: 0;
-      /* Align to the bottom */
       left: 0;
-      /* Align to the left */
       right: 0;
-      /* Align to the right */
       width: 100%;
-      /* Full width */
       z-index: 10;
-      /* Ensure it stays above other content */
     }
 
     .footer p {
@@ -170,35 +232,20 @@
 
       <!-- Header -->
       <div class="text-center mb-8">
-        <div
-          class="inline-flex items-center justify-center w-16 h-16 bg-gradient-to-br from-blue-600 to-indigo-600 rounded-full mb-4">
-          <img src="./pbc_logo.jpeg" alt="Logo" class="w-full h-full object-cover rounded-full" />
+        <div class="inline-flex items-center justify-center w-16 h-16 bg-gradient-to-br from-blue-600 to-indigo-600 rounded-full mb-4">
+          <img src="<?php echo htmlspecialchars($logo_path); ?>" alt="Logo" class="w-full h-full object-cover rounded-full" />
         </div>
         <h1 class="text-2xl font-bold text-gray-800 mb-2">
-          Admin Login
+          <?php echo htmlspecialchars($common_title); ?>
         </h1>
         <p class="text-gray-600 text-sm">
-          Lucky Draw 2026
+          <?php echo htmlspecialchars($year); ?>
         </p>
       </div>
 
       <!-- Login Form -->
-      <form id="loginForm" class="space-y-6">
-
-        <!-- Username Field -->
-        <div class="input-group">
-          <label for="username" class="block text-sm font-semibold text-gray-700 mb-2">
-            <i class="fas fa-user mr-2 text-blue-600"></i>
-            Username
-          </label>
-          <input type="text" id="username" name="username" placeholder="admin"
-            class="input-field w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-            autocomplete="username" required />
-          <div id="usernameError" class="text-red-500 text-xs mt-1 hidden">
-            <i class="fas fa-exclamation-circle mr-1"></i>
-            Username is required
-          </div>
-        </div>
+      <form id="loginForm" class="space-y-6" action="/client/authenticate.php" method="POST">
+        <input type="hidden" name="username" value="<?php echo htmlspecialchars($username); ?>">
 
         <!-- Password Field -->
         <div class="input-group">
@@ -207,7 +254,7 @@
             Password
           </label>
           <div class="relative">
-            <input type="password" id="password" name="password" placeholder="admin"
+            <input type="password" id="password" name="password" placeholder="Enter your password"
               class="input-field w-full px-4 py-3 pr-12 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
               autocomplete="current-password" required />
             <button type="button" id="togglePassword"
@@ -221,11 +268,18 @@
           </div>
         </div>
 
-        <!-- Error Message -->
+        <!-- Error Message from Session -->
+        <?php if (!empty($error_message)): ?>
+        <div id="loginError" class="text-red-500 text-sm p-3 bg-red-50 border border-red-200 rounded-lg">
+          <i class="fas fa-exclamation-triangle mr-2"></i>
+          <?php echo htmlspecialchars($error_message); ?>
+        </div>
+        <?php else: ?>
         <div id="loginError" class="text-red-500 text-sm p-3 bg-red-50 border border-red-200 rounded-lg hidden">
           <i class="fas fa-exclamation-triangle mr-2"></i>
-          Invalid username or password. Please try again.
+          Invalid password. Please try again.
         </div>
+        <?php endif; ?>
 
         <!-- Login Button -->
         <button type="submit" id="loginBtn"
@@ -246,49 +300,30 @@
       <div class="mt-8 text-center">
         <p class="text-xs text-gray-500">
           <i class="fas fa-shield-alt mr-1"></i>
-          Secure Admin Access Only
-        </p>
-        <p class="text-xs text-gray-500 mt-2">
-          <a href="admin/login.php" class="text-blue-600 hover:text-blue-800 underline">
-            <i class="fas fa-external-link-alt mr-1"></i>
-            PHP Admin Login
-          </a>
+          Secure Client Access Only
         </p>
       </div>
 
     </div>
   </div>
 
-  <!-- Footer Section -->
-  <!-- <footer class="footer">
-    <p>Design and Developed by <a href="https://arameglobal.com/" target="_blank">AraMeGlobal</a></p>
-  </footer> -->
-
   <!-- Scripts -->
   <script>
     // DOM Elements
     const loginForm = document.getElementById("loginForm");
-    const usernameInput = document.getElementById("username");
     const passwordInput = document.getElementById("password");
     const togglePasswordBtn = document.getElementById("togglePassword");
     const eyeIcon = document.getElementById("eyeIcon");
     const loginBtn = document.getElementById("loginBtn");
     const loginBtnText = document.getElementById("loginBtnText");
     const loginBtnLoading = document.getElementById("loginBtnLoading");
-
-    // Error elements
-    const usernameError = document.getElementById("usernameError");
     const passwordError = document.getElementById("passwordError");
     const loginError = document.getElementById("loginError");
 
     // Clear all error messages
     function clearErrors() {
-      usernameError.classList.add("hidden");
       passwordError.classList.add("hidden");
       loginError.classList.add("hidden");
-
-      // Remove error styling
-      usernameInput.classList.remove("border-red-500", "error-shake");
       passwordInput.classList.remove("border-red-500", "error-shake");
     }
 
@@ -298,7 +333,6 @@
       element.classList.add("border-red-500", "error-shake");
       element.focus();
 
-      // Remove shake animation after completion
       setTimeout(() => {
         element.classList.remove("error-shake");
       }, 500);
@@ -309,7 +343,6 @@
       const type = passwordInput.getAttribute("type") === "password" ? "text" : "password";
       passwordInput.setAttribute("type", type);
 
-      // Toggle eye icon
       if (type === "password") {
         eyeIcon.classList.remove("fa-eye-slash");
         eyeIcon.classList.add("fa-eye");
@@ -337,14 +370,8 @@
     function validateForm() {
       clearErrors();
 
-      const username = usernameInput.value.trim();
       const password = passwordInput.value.trim();
       let isValid = true;
-
-      if (!username) {
-        showError(usernameInput, usernameError);
-        isValid = false;
-      }
 
       if (!password) {
         showError(passwordInput, passwordError);
@@ -354,108 +381,40 @@
       return isValid;
     }
 
-    // Login function
-    async function login() {
-      if (!validateForm()) {
-        return;
-      }
-
-      const username = usernameInput.value.trim();
-      const password = passwordInput.value.trim();
-
-      // Show loading state
-      showLoading();
-
-      try {
-        // Simulate API call delay for better UX
-        await new Promise(resolve => setTimeout(resolve, 800));
-
-        // Check credentials
-        if (username === "admin" && password === "admin@123") {
-          // Store user session with expiration time
-          const loginTime = new Date().toISOString();
-          const expirationTime = new Date(Date.now() + 60 * 60 * 1000).toISOString(); // 1 hour from now
-
-          localStorage.setItem("user", username);
-          localStorage.setItem("loginTime", loginTime);
-          localStorage.setItem("expirationTime", expirationTime);
-
-          // Success feedback
-          loginBtnText.innerHTML = '<i class="fas fa-check mr-2"></i>Success!';
-          loginBtn.classList.add("bg-green-600");
-
-          // Redirect after short delay
-          setTimeout(() => {
-            window.location.href = "upload-prize.html";
-          }, 1000);
-
-        } else {
-          // Show error
-          hideLoading();
-          loginError.classList.remove("hidden");
-
-          // Clear form
-          passwordInput.value = "";
-          usernameInput.focus();
-        }
-
-      } catch (error) {
-        hideLoading();
-        loginError.textContent = "An error occurred. Please try again.";
-        loginError.classList.remove("hidden");
-      }
-    }
-
     // Event Listeners
     loginForm.addEventListener("submit", (e) => {
-      e.preventDefault();
-      login();
+      if (!validateForm()) {
+        e.preventDefault();
+        return;
+      }
+      showLoading();
     });
 
     togglePasswordBtn.addEventListener("click", togglePassword);
 
     // Clear errors on input
-    usernameInput.addEventListener("input", clearErrors);
     passwordInput.addEventListener("input", clearErrors);
 
-    // Enter key support (already handled by form submit)
-    // Additional support for individual fields
-    usernameInput.addEventListener("keypress", (e) => {
-      if (e.key === "Enter") {
-        if (usernameInput.value.trim()) {
-          passwordInput.focus();
-        }
-      }
-    });
-
+    // Enter key support
     passwordInput.addEventListener("keypress", (e) => {
       if (e.key === "Enter") {
         login();
       }
     });
 
-    // Focus management
     // Check if user is already logged in and session is valid
     document.addEventListener("DOMContentLoaded", () => {
-      const expirationTime = localStorage.getItem("expirationTime");
+      const expirationTime = localStorage.getItem("clientExpirationTime");
       const currentTime = new Date().toISOString();
 
-      if (localStorage.getItem("user") && expirationTime && new Date(currentTime) < new Date(expirationTime)) {
-        // Optional: redirect to dashboard if already logged in and session is valid
-        window.location.href = "upload-prize.html";
+      if (localStorage.getItem("clientUser") && expirationTime && new Date(currentTime) < new Date(expirationTime)) {
+        window.location.href = "/client/dashboard.php";
       } else {
-        // Clear session if expired
-        localStorage.removeItem("user");
-        localStorage.removeItem("loginTime");
-        localStorage.removeItem("expirationTime");
+        localStorage.removeItem("clientUser");
+        localStorage.removeItem("clientLoginTime");
+        localStorage.removeItem("clientExpirationTime");
       }
     });
-
-    // Check if user is already logged in
-    if (localStorage.getItem("user")) {
-      // Optional: redirect to dashboard if already logged in
-      // window.location.href = "upload-prize.html";
-    }
   </script>
 </body>
 
