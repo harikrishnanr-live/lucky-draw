@@ -545,8 +545,13 @@
             // Calculate remaining winners needed
             const remainingWinners = prize.qty - prize.winners.length;
 
-            // Draw 1 winner at a time
-            drawWinners(prize, 1);
+            // For prizes > 5, divide into sets of 5
+            if (remainingWinners > 5) {
+                const winnersToDrawThisSet = Math.min(5, remainingWinners);
+                drawWinners(prize, winnersToDrawThisSet);
+            } else {
+                drawWinners(prize, remainingWinners);
+            }
         }
 
         // Get list of participant names who have already won (for eligibility check)
@@ -608,10 +613,10 @@
                 // Store current draw results
                 currentPrizeWinners = winnerRecords;
 
-                // Calculate sets (now 1 at a time)
+                // Calculate sets
                 const remainingAfterDraw = prize.qty - prize.winners.length;
-                totalSets = prize.qty;
-                currentSetIndex = prize.winners.length - 1;
+                totalSets = Math.ceil(prize.qty / 5);
+                currentSetIndex = Math.ceil(prize.winners.length / 5) - 1;
 
                 // Hide spinner and show results
                 hideSpinner();
